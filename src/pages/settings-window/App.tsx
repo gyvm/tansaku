@@ -34,7 +34,7 @@ export default function App() {
     { type: 'item', id: 'local-ai', label: 'ローカルAI' },
     { type: 'item', id: 'custom-prompt', label: 'カスタムプロンプト' },
     { type: 'item', id: 'dictionary', label: '辞書・置換' },
-    { type: 'header', label: 'TYPOZEROについて' },
+    { type: 'header', label: 'その他' },
     { type: 'item', id: 'about', label: 'TYPOZEROについて' },
   ];
 
