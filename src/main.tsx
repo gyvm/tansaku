@@ -11,6 +11,7 @@ import SettingsWindowApp from './pages/settings-window/App';
 import AuralogApp from './pages/auralog/App';
 import TypoZeroApp from './pages/typozero/App';
 import AppBooksApp from './pages/appbooks/App';
+import SoftGlassApp from './pages/soft-glass/App';
 
 import './styles/globals.css';
 
@@ -69,6 +70,14 @@ function App() {
               <AppBooksApp />
             </ProjectLayout>
           } 
+        />
+        <Route
+          path="/soft-glass"
+          element={
+            <ProjectLayout>
+              <SoftGlassApp />
+            </ProjectLayout>
+          }
         />
 
         {/* 404 Page */}

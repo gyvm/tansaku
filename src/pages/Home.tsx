@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Layout, Settings, Zap, BookOpen, Palette } from 'lucide-react';
+import { ArrowRight, Layout, Settings, Zap, BookOpen, Palette, Cloud } from 'lucide-react';
 
 interface ProjectCard {
   id: string;
@@ -55,6 +55,15 @@ const projects: ProjectCard[] = [
     path: '/appbooks',
     icon: <BookOpen className="w-6 h-6" />,
     color: 'from-amber-500 to-amber-600',
+    status: 'completed',
+  },
+  {
+    id: 'soft-glass',
+    name: 'Soft Glass',
+    description: 'A hybrid design system combining Claymorphism softness with Glassmorphism transparency.',
+    path: '/soft-glass',
+    icon: <Cloud className="w-6 h-6" />,
+    color: 'from-pink-400 to-purple-500',
     status: 'completed',
   },
 ];

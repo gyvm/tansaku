@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .soft-glass-theme {
+    /* Color Palette */
+    --background: 210 40% 96%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 330 80% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 90%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 90%;
+    --muted-foreground: 215 20% 45%;
+
+    --accent: 210 40% 90%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 330 80% 60%;
+
+    --radius: 1.5rem; /* Large radius for clay feel */
+  }
+
+  .soft-glass-theme.dark,
+  .dark .soft-glass-theme {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 330 80% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 330 80% 60%;
+  }
+}
+
+@layer components {
+  /*
+   * Soft Glass Panel
+   * A container with frosted glass effect and soft clay-like volume
+   */
+  .glass-panel {
+    @apply bg-white/60 backdrop-blur-xl border border-white/40 rounded-[2rem];
+    box-shadow:
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -4px 10px 0 rgba(0, 0, 0, 0.05),
+      0 10px 30px -10px rgba(0, 0, 0, 0.1);
+  }
+
+  /*
+   * Glass Button
+   * Interactive element with lift effect
+   */
+  .glass-button {
+    @apply inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    @apply bg-white/40 backdrop-blur-md border border-white/50 rounded-2xl px-6 py-3 text-foreground shadow-sm;
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
+      0 4px 10px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .glass-button:hover {
+    @apply bg-white/70 -translate-y-0.5;
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+      0 8px 20px -4px rgba(0, 0, 0, 0.15);
+  }
+
+  .glass-button:active {
+    @apply bg-white/50 translate-y-0 scale-95;
+    box-shadow:
+      inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .glass-button-primary {
+    @apply bg-primary/80 text-primary-foreground border-primary/20;
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+      0 4px 15px -3px theme('colors.primary.DEFAULT / 40%');
+  }
+
+  .glass-button-primary:hover {
+    @apply bg-primary/90;
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+      0 8px 25px -5px theme('colors.primary.DEFAULT / 50%');
+  }
+
+  /*
+   * Glass Input
+   * Inner shadow for depth
+   */
+  .glass-input {
+    @apply bg-white/40 backdrop-blur-sm border border-white/30 rounded-2xl px-4 py-3 text-sm outline-none transition-all placeholder:text-muted-foreground;
+    box-shadow:
+      inset 2px 2px 6px rgba(0,0,0,0.03),
+      inset -2px -2px 6px rgba(255,255,255,0.5);
+  }
+
+  .glass-input:focus {
+    @apply bg-white/70 border-primary/30 ring-4 ring-primary/10;
+    box-shadow: none;
+  }
+}
+
+.soft-glass-theme {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
