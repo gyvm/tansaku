@@ -12,6 +12,7 @@ import AuralogApp from './pages/auralog/App';
 import TypoZeroApp from './pages/typozero/App';
 import AppBooksApp from './pages/appbooks/App';
 import SoftGlassApp from './pages/soft-glass/App';
+import RetroGlassUI from './pages/retro-glass-ui';
 
 import './styles/globals.css';
 
@@ -76,6 +77,14 @@ function App() {
           element={
             <ProjectLayout>
               <SoftGlassApp />
+            </ProjectLayout>
+          }
+        />
+        <Route
+          path="/retro-glass-ui"
+          element={
+            <ProjectLayout>
+              <RetroGlassUI />
             </ProjectLayout>
           }
         />
