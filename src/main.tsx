@@ -13,6 +13,8 @@ import TypoZeroApp from './pages/typozero/App';
 import AppBooksApp from './pages/appbooks/App';
 import SoftGlassApp from './pages/soft-glass/App';
 import RetroGlassUI from './pages/retro-glass-ui';
+import VoiceNotesStepApp from './pages/voice-notes-step/App';
+import VoiceNotesDashApp from './pages/voice-notes-dash/App';
 
 import './styles/globals.css';
 
@@ -85,6 +87,22 @@ function App() {
           element={
             <ProjectLayout>
               <RetroGlassUI />
+            </ProjectLayout>
+          }
+        />
+        <Route
+          path="/voice-notes-step"
+          element={
+            <ProjectLayout>
+              <VoiceNotesStepApp />
+            </ProjectLayout>
+          }
+        />
+        <Route
+          path="/voice-notes-dash"
+          element={
+            <ProjectLayout>
+              <VoiceNotesDashApp />
             </ProjectLayout>
           }
         />
