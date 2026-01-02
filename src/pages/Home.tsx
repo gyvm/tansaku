@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Layout, Settings, Zap, BookOpen, Palette, Cloud } from 'lucide-react';
+import { ArrowRight, Layout, Settings, Zap, BookOpen, Palette, Cloud, FileAudio, LayoutDashboard } from 'lucide-react';
 
 interface ProjectCard {
   id: string;
@@ -73,6 +73,24 @@ const projects: ProjectCard[] = [
     path: '/retro-glass-ui',
     icon: <Layout className="w-6 h-6" />,
     color: 'from-slate-500 to-stone-600',
+    status: 'completed',
+  },
+  {
+    id: 'voice-notes-step',
+    name: 'Voice Notes (Step UI)',
+    description: 'Step-by-step wizard interface for meeting minutes generation with Japanese Teal theme.',
+    path: '/voice-notes-step',
+    icon: <FileAudio className="w-6 h-6" />,
+    color: 'from-teal-500 to-emerald-600',
+    status: 'completed',
+  },
+  {
+    id: 'voice-notes-dash',
+    name: 'Voice Notes (Dash UI)',
+    description: 'Single-view dashboard interface for meeting minutes generation.',
+    path: '/voice-notes-dash',
+    icon: <LayoutDashboard className="w-6 h-6" />,
+    color: 'from-teal-600 to-cyan-700',
     status: 'completed',
   },
 ];

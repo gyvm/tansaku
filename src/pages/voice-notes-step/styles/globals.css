@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Japanese Teal Theme for Voice Notes (Step UI)
+  Based on traditional colors: Seiji (Celadon), Tetsu-onando (Iron Blue), etc.
+*/
+
+@layer base {
+  :root {
+    /*
+      Backgrounds
+      Seiji-iro (Celadon) - Very light: #f0f7f5
+    */
+    --vn-step-bg: #f4f9f7;
+    --vn-step-surface: #ffffff;
+    --vn-step-surface-hover: #eef5f3;
+
+    /*
+      Primary / Accents
+      Tetsu-onando (Iron Blue-Green): #255359
+      Tokiwa-iro (Evergreen): #006e54
+      Seiji-nezumi (Greenish Gray): #bed2c3
+    */
+    --vn-step-primary: #006e54;
+    --vn-step-primary-hover: #005541;
+    --vn-step-primary-foreground: #ffffff;
+
+    --vn-step-secondary: #e6f0ec;
+    --vn-step-secondary-foreground: #006e54;
+
+    /* Text */
+    --vn-step-text-main: #1f2937;
+    --vn-step-text-muted: #6b7280;
+
+    /* Borders */
+    --vn-step-border: #d1e2db;
+  }
+}
+
+.vn-step-wrapper {
+  background-color: var(--vn-step-bg);
+  color: var(--vn-step-text-main);
+  min-height: 100vh;
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+}
+
+.vn-card {
+  background-color: var(--vn-step-surface);
+  border: 1px solid var(--vn-step-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.vn-btn-primary {
+  background-color: var(--vn-step-primary);
+  color: var(--vn-step-primary-foreground);
+  transition: all 0.2s ease;
+}
+
+.vn-btn-primary:hover {
+  background-color: var(--vn-step-primary-hover);
+}
+
+.vn-btn-secondary {
+  background-color: var(--vn-step-secondary);
+  color: var(--vn-step-secondary-foreground);
+  transition: all 0.2s ease;
+}
+
+.vn-btn-secondary:hover {
+  background-color: #dbebe5;
+}
+
+/* Animations for step transitions */
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Japanese Teal Dashboard Theme for Voice Notes (Dash UI)
+  A bit more dense, functional look.
+*/
+
+@layer base {
+  :root {
+    /* Backgrounds */
+    --vn-dash-bg: #f8faf9;
+    --vn-dash-sidebar: #ffffff;
+    --vn-dash-surface: #ffffff;
+    --vn-dash-border: #e2e8f0;
+
+    /* Colors - Similar to Step but sharper */
+    --vn-dash-primary: #0f4c3a; /* Deep green */
+    --vn-dash-accent: #10b981; /* Emerald 500 */
+    --vn-dash-accent-hover: #059669;
+
+    --vn-dash-text-main: #1e293b;
+    --vn-dash-text-muted: #64748b;
+  }
+}
+
+.vn-dash-layout {
+  background-color: var(--vn-dash-bg);
+  color: var(--vn-dash-text-main);
+  min-height: 100vh;
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+}
+
+.vn-dash-sidebar {
+  background-color: var(--vn-dash-sidebar);
+  border-right: 1px solid var(--vn-dash-border);
+}
+
+.vn-dash-panel {
+  background-color: var(--vn-dash-surface);
+  border: 1px solid var(--vn-dash-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.vn-dash-btn-primary {
+  background-color: var(--vn-dash-primary);
+  color: white;
+}
+.vn-dash-btn-primary:hover {
+  background-color: #0b382b;
+}
+
+/* Animations */
+.slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}

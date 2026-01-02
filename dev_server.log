@@ -1,0 +1,13 @@
+
+> design-tansaku@0.1.0 dev
+> vite
+
+
+  VITE v6.3.5  ready in 374 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+4:55:42 PM [vite] (client) hmr update /src/pages/voice-notes-step/components/ProcessingOption.tsx, /src/styles/globals.css, /src/pages/voice-notes-step/styles/globals.css, /src/pages/voice-notes-dash/styles/globals.css, /src/pages/soft-glass/styles/globals.css
+4:57:11 PM [vite] (client) hmr update /src/pages/voice-notes-dash/App.tsx, /src/styles/globals.css, /src/pages/voice-notes-step/styles/globals.css, /src/pages/voice-notes-dash/styles/globals.css, /src/pages/soft-glass/styles/globals.css
+4:57:24 PM [vite] (client) hmr update /src/pages/voice-notes-dash/components/DashboardPanel.tsx, /src/styles/globals.css, /src/pages/voice-notes-step/styles/globals.css, /src/pages/voice-notes-dash/styles/globals.css, /src/pages/soft-glass/styles/globals.css
+4:57:37 PM [vite] (client) hmr update /src/pages/voice-notes-dash/styles/globals.css
