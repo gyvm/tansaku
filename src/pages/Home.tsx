@@ -66,6 +66,15 @@ const projects: ProjectCard[] = [
     color: 'from-pink-400 to-purple-500',
     status: 'completed',
   },
+  {
+    id: 'retro-glass-ui',
+    name: 'Retro Glass UI',
+    description: 'A nostalgic collection of Lo-Fi Paper & Glass components.',
+    path: '/retro-glass-ui',
+    icon: <Layout className="w-6 h-6" />,
+    color: 'from-slate-500 to-stone-600',
+    status: 'completed',
+  },
 ];
 
 export default function Home() {

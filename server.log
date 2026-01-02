@@ -1,0 +1,11 @@
+
+> design-tansaku@0.1.0 dev
+> vite
+
+
+  VITE v6.3.5  ready in 264 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+3:03:39 PM [vite] (client) hmr update /src/pages/retro-glass-ui/index.tsx, /src/styles/globals.css, /src/pages/soft-glass/styles/globals.css
+3:04:14 PM [vite] (client) hmr update /src/pages/retro-glass-ui/components/creative/TypewriterInput.tsx, /src/styles/globals.css, /src/pages/soft-glass/styles/globals.css

@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=DM+Sans:wght@400;500;700&display=swap');
+
+.retro-glass-ui-wrapper {
+  /* Colors */
+  --retro-bg: #f0f2f5;
+  --retro-paper: #fdfbf7;
+  --retro-paper-dark: #f2efe9;
+  --retro-glass: rgba(255, 255, 255, 0.25);
+  --retro-glass-border: rgba(255, 255, 255, 0.4);
+  --retro-text-main: #2c3e50;
+  --retro-text-muted: #5d6d7e;
+  --retro-accent: #34495e;
+  --retro-primary: #3b82f6;
+
+  /* Retro Palette */
+  --color-cream: #fdfbf7;
+  --color-ink: #2c3e50;
+  --color-denim: #546e7a;
+  --color-matcha: #7d8c6d;
+  --color-rust: #a65d57;
+
+  /* Typography */
+  --font-display: 'Special Elite', cursive; /* Typewriter style */
+  --font-body: 'DM Sans', sans-serif;
+
+  font-family: var(--font-body);
+  color: var(--retro-text-main);
+}
+
+.retro-glass-ui-wrapper .font-display {
+  font-family: var(--font-display);
+}
+
+/* Texture Background */
+.retro-glass-ui-wrapper .texture-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+.retro-glass-ui-wrapper .glass-panel {
+  background: var(--retro-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--retro-glass-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.retro-glass-ui-wrapper .paper-shadow {
+  box-shadow:
+    0 1px 1px rgba(0,0,0,0.05),
+    0 2px 2px rgba(0,0,0,0.05),
+    0 4px 4px rgba(0,0,0,0.05),
+    0 8px 8px rgba(0,0,0,0.05);
+}
