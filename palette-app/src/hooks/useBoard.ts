@@ -14,9 +14,17 @@ export const useBoard = () => {
     }
   });
 
-  // Auto-save
+  // Auto-save with debounce
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    const handler = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      } catch (e) {
+        console.error("Failed to save board data (likely quota exceeded)", e);
+      }
+    }, 1000); // 1 second debounce
+
+    return () => clearTimeout(handler);
   }, [items]);
 
   const addSticky = useCallback(() => {

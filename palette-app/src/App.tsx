@@ -99,7 +99,11 @@ function App() {
             </div>
             <div className="p-4 border-t flex justify-end">
                 <button
-                    onClick={() => { navigator.clipboard.writeText(getMarkdown()); alert('Copied!'); }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(getMarkdown())
+                        .then(() => alert('Copied!'))
+                        .catch((err) => alert('Failed to copy: ' + err));
+                    }}
                     className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 text-sm cursor-pointer"
                 >
                     Copy to Clipboard
