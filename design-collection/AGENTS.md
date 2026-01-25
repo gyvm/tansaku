@@ -913,8 +913,8 @@ export function MyDialog() {
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/[user]/design-tansaku.git
-cd design-tansaku
+git clone https://github.com/[user]/tansaku.git
+cd tansaku/design-collection
 
 # 依存パッケージをインストール（一度だけ）
 npm install
