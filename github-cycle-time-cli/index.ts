@@ -55,10 +55,16 @@ interface GraphQLResponse {
 /**
  * Calculates the cycle time in hours.
  * Cycle Time = mergedAt - firstCommittedAt
+ * Returns NaN if either date is invalid.
  */
 function calculateCycleTime(mergedAt: string, firstCommittedAt: string): number {
   const mergedDate = new Date(mergedAt);
   const firstCommitDate = new Date(firstCommittedAt);
+
+  // Validate dates
+  if (isNaN(mergedDate.getTime()) || isNaN(firstCommitDate.getTime())) {
+    return NaN;
+  }
 
   const diffMs = mergedDate.getTime() - firstCommitDate.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
@@ -135,7 +141,7 @@ async function main() {
       }
     );
 
-    if (!response.repository || !response.repository.pullRequests) {
+    if (!response.repository || !response.repository.pullRequests || !response.repository.pullRequests.nodes) {
         throw new Error("Invalid response structure from GitHub API");
     }
 
@@ -161,6 +167,12 @@ async function main() {
 
       const firstCommittedAt = pr.commits.nodes[0].commit.committedDate;
       const hours = calculateCycleTime(pr.mergedAt, firstCommittedAt);
+
+      // Skip if date calculation resulted in NaN
+      if (isNaN(hours)) {
+        console.warn(`[#${pr.number}] Skipped: Invalid date format resulted in NaN.`);
+        continue;
+      }
 
       // Print individual PR result
       // Format: [#123] PRタイトル: 24.5 hours
