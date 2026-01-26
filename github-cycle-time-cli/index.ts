@@ -55,7 +55,7 @@ interface GraphQLResponse {
 /**
  * Calculates the cycle time in hours.
  * Cycle Time = mergedAt - firstCommittedAt
- * Returns NaN if either date is invalid.
+ * Returns NaN if either date is invalid (malformed date string or unparseable format).
  */
 function calculateCycleTime(mergedAt: string, firstCommittedAt: string): number {
   const mergedDate = new Date(mergedAt);
@@ -170,7 +170,7 @@ async function main() {
 
       // Skip if date calculation resulted in NaN
       if (isNaN(hours)) {
-        console.warn(`[#${pr.number}] Skipped: Invalid date format resulted in NaN.`);
+        console.warn(`[#${pr.number}] Skipped: Invalid date format (mergedAt: ${pr.mergedAt}, firstCommittedAt: ${firstCommittedAt}).`);
         continue;
       }
 
