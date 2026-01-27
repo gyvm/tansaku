@@ -46,6 +46,7 @@ npx ts-node --esm index.ts --include-bots
 ## Logic
 
 - **Cycle Time**: Time difference between the *first commit date* of the PR and the *merge date*.
+  - **Note**: The "first commit" is determined by GitHub's commit graph order (first: 1). This may not be the chronologically earliest commit for PRs with rebased, cherry-picked, or force-pushed commits. For accurate cycle time measurement across all scenarios, consider fetching all commits and finding the minimum timestamp.
 - **Bot Filtering**:
     - Automatic detection using GitHub API (`__typename: "Bot"`).
     - Manual exclusion list in `index.ts`.
