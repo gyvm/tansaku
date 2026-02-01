@@ -6,9 +6,9 @@ use reqwest::blocking::Client;
 use std::env;
 use std::fmt::Write;
 use std::fs;
-use std::io::{self, Write as IoWrite};
+use std::io::{self, Read, Write as IoWrite};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 use tar::Archive;
 use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters};
 use xz2::read::XzDecoder;
@@ -216,7 +216,7 @@ fn set_executable(path: &Path) -> Result<()> {
 }
 
 fn load_audio_samples(ffmpeg_path: &Path, input: &Path) -> Result<Vec<f32>> {
-    let output = Command::new(ffmpeg_path)
+    let mut child = Command::new(ffmpeg_path)
         .arg("-hide_banner")
         .arg("-loglevel")
         .arg("error")
@@ -230,19 +230,62 @@ fn load_audio_samples(ffmpeg_path: &Path, input: &Path) -> Result<Vec<f32>> {
         .arg("-ar")
         .arg("16000")
         .arg("-")
-        .output()
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .with_context(|| "Failed to run ffmpeg")?;
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(anyhow!("ffmpeg failed: {}", stderr.trim()));
+    let mut stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| anyhow!("Failed to capture ffmpeg stdout"))?;
+    let mut stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| anyhow!("Failed to capture ffmpeg stderr"))?;
+
+    let stderr_handle = std::thread::spawn(move || {
+        let mut buffer = String::new();
+        let _ = stderr.read_to_string(&mut buffer);
+        buffer
+    });
+
+    let mut samples = Vec::new();
+    let mut buf = [0u8; 8192];
+    let mut pending: Option<u8> = None;
+
+    loop {
+        let read = stdout.read(&mut buf)?;
+        if read == 0 {
+            break;
+        }
+        let mut slice = &buf[..read];
+        if let Some(byte) = pending.take() {
+            if !slice.is_empty() {
+                let value = i16::from_le_bytes([byte, slice[0]]);
+                samples.push(value as f32 / 32768.0);
+                slice = &slice[1..];
+            } else {
+                pending = Some(byte);
+                continue;
+            }
+        }
+
+        for chunk in slice.chunks_exact(2) {
+            let value = i16::from_le_bytes([chunk[0], chunk[1]]);
+            samples.push(value as f32 / 32768.0);
+        }
+        if slice.len() % 2 == 1 {
+            pending = slice.last().copied();
+        }
     }
 
-    let mut samples = Vec::with_capacity(output.stdout.len() / 2);
-    for chunk in output.stdout.chunks_exact(2) {
-        let value = i16::from_le_bytes([chunk[0], chunk[1]]);
-        samples.push(value as f32 / 32768.0);
+    let status = child.wait()?;
+    let stderr_output = stderr_handle.join().unwrap_or_default();
+    if !status.success() {
+        return Err(anyhow!("ffmpeg failed: {}", stderr_output.trim()));
     }
+
     Ok(samples)
 }
 
