@@ -1,0 +1,17 @@
+[package]
+name = "local-whisper-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+clap = { version = "4", features = ["derive"] }
+directories = "5"
+num_cpus = "1"
+reqwest = { version = "0.12", features = ["blocking", "rustls-tls"] }
+tar = "0.4"
+whisper-rs = "0.15.1"
+which = "6"
+xz2 = "0.1"
+zip = "0.6"
