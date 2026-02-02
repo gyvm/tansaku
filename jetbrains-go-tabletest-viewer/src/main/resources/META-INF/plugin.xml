@@ -1,0 +1,20 @@
+<idea-plugin>
+    <id>com.github.mypkg.jetbrains-go-tabletest-viewer</id>
+    <name>Test Table Viewer</name>
+    <vendor>MyPkg</vendor>
+
+    <description><![CDATA[
+    Viewer for Go table driven tests.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Table Tests" secondary="true" anchor="right"
+                    factoryClass="com.github.mypkg.ui.TableTestToolWindowFactory"/>
+
+        <applicationConfigurable parentId="tools" instance="com.github.mypkg.settings.AppSettingsConfigurable"
+                                 id="com.github.mypkg.settings.AppSettingsConfigurable"
+                                 displayName="Test Table Viewer"/>
+    </extensions>
+</idea-plugin>
