@@ -85,7 +85,7 @@ export function useMouseMarathon() {
   // Auto-save settings on change
   useEffect(() => {
     if (loaded) saveState();
-  }, [pxPerMeter, loaded, saveState]);
+  }, [pxPerMeter, isRunning, loaded, saveState]);
 
   // Celebration Check
   const prevCount = useRef<number>(-1); // Start -1 to avoid initial trigger
