@@ -26,6 +26,9 @@ export function useMouseMarathon() {
   const [loaded, setLoaded] = useState(false);
   const [celebration, setCelebration] = useState<{count: number} | null>(null);
 
+  // Date reference for runtime rollover check
+  const currentDateRef = useRef(new Date().toISOString().split('T')[0]);
+
   const stateRef = useRef({ todayPx, totalPx, isRunning, pxPerMeter });
   useEffect(() => {
     stateRef.current = { todayPx, totalPx, isRunning, pxPerMeter };
@@ -112,7 +115,13 @@ export function useMouseMarathon() {
         unlisten = await listen<number>('mouse-moved', (event) => {
           const delta = event.payload;
           if (stateRef.current.isRunning) {
-               setTodayPx(p => p + delta);
+               const now = new Date().toISOString().split('T')[0];
+               if (now !== currentDateRef.current) {
+                   currentDateRef.current = now;
+                   setTodayPx(delta);
+               } else {
+                   setTodayPx(p => p + delta);
+               }
                setTotalPx(p => p + delta);
                saveState();
           }
