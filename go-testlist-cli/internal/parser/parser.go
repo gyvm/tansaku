@@ -22,6 +22,7 @@ func ParseDir(root string) (*model.Output, error) {
 	// Map to aggregate files by package import path (approximated by directory path)
 	// Key: importPath (relative dir path), Value: *model.Package
 	pkgMap := make(map[string]*model.Package)
+	var parseErrors []string
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -46,7 +47,9 @@ func ParseDir(root string) (*model.Output, error) {
 		f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
 		if err != nil {
 			// Report error to stderr as per requirements, but continue processing other files
-			fmt.Fprintf(os.Stderr, "Failed to parse %s: %v\n", path, err)
+			errMsg := fmt.Sprintf("Failed to parse %s: %v", path, err)
+			fmt.Fprintln(os.Stderr, errMsg)
+			parseErrors = append(parseErrors, errMsg)
 			return nil
 		}
 
@@ -95,6 +98,10 @@ func ParseDir(root string) (*model.Output, error) {
 
 		return nil
 	})
+
+	if err == nil && len(parseErrors) > 0 {
+		err = fmt.Errorf("encountered %d parsing error(s)", len(parseErrors))
+	}
 
 	return out, err
 }

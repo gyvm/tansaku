@@ -65,3 +65,14 @@ func TestPatternImplicitField(t *testing.T) {
 		t.Run(tt.Name, func(t *testing.T) {})
 	}
 }
+
+func TestPatternVarDecl(t *testing.T) {
+	var tests = []struct {
+		name string
+	}{
+		{name: "varDeclCase"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {})
+	}
+}

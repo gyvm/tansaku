@@ -31,6 +31,21 @@ func extractTestCases(fset *token.FileSet, fn *ast.FuncDecl) []*model.TestCase {
 				}
 			}
 
+		case *ast.DeclStmt:
+			// Track variable declarations: var tests = ...
+			if gen, ok := node.Decl.(*ast.GenDecl); ok && gen.Tok == token.VAR {
+				for _, spec := range gen.Specs {
+					if vs, ok := spec.(*ast.ValueSpec); ok {
+						// var tests = []struct{...}{...}
+						if len(vs.Names) == 1 && len(vs.Values) == 1 {
+							if lit, ok := vs.Values[0].(*ast.CompositeLit); ok {
+								tables[vs.Names[0].Name] = lit
+							}
+						}
+					}
+				}
+			}
+
 		case *ast.RangeStmt:
 			// Check if this range loop runs subtests
 			// Pattern A: for _, tt := range tests { t.Run(tt.name, ...) }
