@@ -1,0 +1,29 @@
+> Task :checkKotlinGradlePluginConfigurationErrors
+> Task :initializeIntelliJPlugin
+> Task :patchPluginXml
+
+> Task :verifyPluginConfiguration
+[gradle-intellij-plugin :verifyPluginConfiguration] The following plugin configuration issues were found:
+- The dependency on the Kotlin Standard Library (stdlib) is automatically added when using the Gradle Kotlin plugin and may conflict with the version provided with the IntelliJ Platform, see: https://jb.gg/intellij-platform-kotlin-stdlib
+See: https://jb.gg/intellij-platform-versions
+
+> Task :processResources
+> Task :processTestResources NO-SOURCE
+> Task :compileKotlin
+> Task :compileJava NO-SOURCE
+> Task :classes
+> Task :instrumentCode
+> Task :instrumentedJar
+> Task :jar
+> Task :prepareTestingSandbox
+> Task :compileTestKotlin
+> Task :compileTestJava NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :instrumentTestCode
+> Task :classpathIndexCleanup
+
+> Task :test
+CompileCommand: exclude com/intellij/openapi/vfs/impl/FilePartNodeRoot.trieDescend bool exclude = true
+
+BUILD SUCCESSFUL in 8s
+14 actionable tasks: 14 executed
