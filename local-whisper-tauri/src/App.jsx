@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { open } from '@tauri-apps/plugin-dialog'
 import './App.css'
 
 const statusLabels = {
@@ -31,7 +32,6 @@ const formatTimestamp = (seconds) => {
 }
 
 function App() {
-  const fileInputRef = useRef(null)
   const [selectedFile, setSelectedFile] = useState(null)
   const [engineStatus, setEngineStatus] = useState('booting')
   const [logs, setLogs] = useState([])
@@ -78,16 +78,33 @@ function App() {
     setLogs([])
   }
 
-  const handleFilePick = (event) => {
-    const file = event.target.files?.[0]
-    handleFile(file)
+  const handleDialogPick = async () => {
+    setErrorMessage('')
+    const selected = await open({
+      multiple: false,
+      filters: [
+        {
+          name: 'Audio/Video',
+          extensions: ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg', 'mp4', 'mov', 'mkv'],
+        },
+      ],
+    })
+    if (!selected) return
+    const path = Array.isArray(selected) ? selected[0] : selected
+    const name = path.split(/[/\\]/).pop() || path
+    handleFile({ path, name, size: null })
   }
 
   const handleDrop = (event) => {
     event.preventDefault()
     setIsDragging(false)
     const file = event.dataTransfer.files?.[0]
-    handleFile(file)
+    if (!file) return
+    handleFile({
+      path: file.path,
+      name: file.name,
+      size: file.size,
+    })
   }
 
   const startTranscription = async () => {
@@ -96,7 +113,7 @@ function App() {
       return
     }
     if (!filePath) {
-      setErrorMessage('This file picker did not provide a full path. Use drag and drop or the choose button in the desktop app.')
+      setErrorMessage('This selection did not provide a full path. Use the Open button or drag & drop inside the desktop app.')
       return
     }
 
@@ -144,20 +161,9 @@ function App() {
               <p className="panel-description">Drag a file here or choose one from disk.</p>
             </div>
             <div className="dropzone-actions">
-              <button
-                type="button"
-                className="btn btn-outline"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Choose file
+              <button type="button" className="btn btn-outline" onClick={handleDialogPick}>
+                Open file
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="audio/*,video/*"
-                onChange={handleFilePick}
-                hidden
-              />
             </div>
           </div>
 

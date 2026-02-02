@@ -19,7 +19,7 @@ pub struct TranscriptionResult {
     pub language: String,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 struct LogEvent {
     message: String,
 }
@@ -39,8 +39,8 @@ pub async fn ensure_dependencies(app: AppHandle) -> Result<DependencyStatus, Str
         })
     })
     .await
-    .map_err(|error| error.to_string())?
-    .map_err(|error| error.to_string())
+    .map_err(|error: tauri::Error| error.to_string())?
+    .map_err(|error: anyhow::Error| error.to_string())
 }
 
 #[tauri::command]
@@ -81,8 +81,8 @@ pub async fn transcribe_file(app: AppHandle, input_path: String) -> Result<Trans
         })
     })
     .await
-    .map_err(|error| error.to_string())?
-    .map_err(|error| error.to_string())
+    .map_err(|error: tauri::Error| error.to_string())?
+    .map_err(|error: anyhow::Error| error.to_string())
 }
 
 fn emit_log(app: &AppHandle, message: impl Into<String>) {
