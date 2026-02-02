@@ -76,3 +76,16 @@ func TestPatternVarDecl(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {})
 	}
 }
+
+func TestPatternUnkeyed(t *testing.T) {
+	// Unkeyed struct literal
+	tests := []struct {
+		name string
+		val  int
+	}{
+		{"unkeyedCase1", 1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {})
+	}
+}

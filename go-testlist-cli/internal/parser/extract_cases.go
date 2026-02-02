@@ -195,19 +195,10 @@ func extractFromTable(fset *token.FileSet, lit *ast.CompositeLit, fieldName stri
 	}
 
 	// Pattern A: Iterate Slice Elements
-	// We need to find which field corresponds to 'fieldName' (e.g. "name", "desc")
-	// If fieldName is empty, we guess.
-
-	// First, try to inspect the struct type if available to verify fields?
-	// For MVP, we look at the values in the CompositeLit.
-
 	for _, elt := range lit.Elts {
 		// elt is one test case struct: {name: "foo", ...}
-
-		// Unpack nested CompositeLit if necessary (e.g. []Type{ { ... } })
 		innerLit, ok := elt.(*ast.CompositeLit)
 		if !ok {
-			// Might be implicit?
 			continue
 		}
 
@@ -217,83 +208,50 @@ func extractFromTable(fset *token.FileSet, lit *ast.CompositeLit, fieldName stri
 			Source: "table_literal",
 		}
 
-		// Search for name/desc fields
+		// Store fields for fallback lookup
+		fields := make(map[string]string)
 		foundName := false
 		foundDesc := ""
 
-		// If fields are named: {Name: "foo", Val: 1}
-		for _, field := range innerLit.Elts {
-			kv, ok := field.(*ast.KeyValueExpr)
-			if !ok {
-				// Unnamed fields: { "foo", 1 } - Harder to map without struct definition
+		// Scan fields
+		for i, field := range innerLit.Elts {
+			// Handle Named Fields
+			if kv, ok := field.(*ast.KeyValueExpr); ok {
+				if keyIdent, ok := kv.Key.(*ast.Ident); ok {
+					k := strings.ToLower(keyIdent.Name)
+					val := ""
+					if vLit, ok := kv.Value.(*ast.BasicLit); ok && vLit.Kind == token.STRING {
+						val, _ = unquote(vLit.Value)
+					} else {
+						val = "dynamic:" + exprToString(kv.Value)
+					}
+
+					fields[k] = val
+
+					// If exact match to t.Run(tt.field)
+					if fieldName != "" && strings.EqualFold(keyIdent.Name, fieldName) {
+						c.Name = val
+						foundName = true
+					}
+				}
 				continue
 			}
 
-			keyIdent, ok := kv.Key.(*ast.Ident)
-			if !ok {
-				continue
-			}
-
-			k := strings.ToLower(keyIdent.Name)
-			val := ""
-
-			// Extract string value if literal
-			if vLit, ok := kv.Value.(*ast.BasicLit); ok && vLit.Kind == token.STRING {
-				val, _ = unquote(vLit.Value)
-			} else {
-				// Non-literal expression
-				val = "dynamic:" + exprToString(kv.Value)
-			}
-
-			// Priority Logic
-			// If we know the specific field name used in t.Run(tt.field)
-			if fieldName != "" && strings.EqualFold(keyIdent.Name, fieldName) {
-				c.Name = val
-				foundName = true
-			}
-
-			// Fallbacks/Secondaries
-			if k == "name" || k == "desc" || k == "title" || k == "case" || k == "scenario" {
-				if !foundName && fieldName == "" {
-					// Guessing mode: prioritize name > desc > title...
-					// Simple heuristic: First match wins if we haven't found one?
-					// Or strictly follow precedence.
-					// Let's collect candidates and decide later?
-					// For MVP: if we found the explicit field, stick to it.
-					// If not, use standard names.
-				}
-
-				// Keep "desc" if we find it
-				if k == "desc" {
-					foundDesc = val
-				}
-
-				// If we haven't locked onto a specific field yet
-				if !foundName {
-					// Standard precedence logic could be complex inside loop.
-					// Let's simplify: Store all string fields and pick best after loop.
+			// Handle Unkeyed Literal (Positional fields)
+			// Heuristic: 1st element is name if string
+			if i == 0 {
+				if vLit, ok := field.(*ast.BasicLit); ok && vLit.Kind == token.STRING {
+					val, _ := unquote(vLit.Value)
+					if !foundName {
+						c.Name = val
+						foundName = true
+					}
 				}
 			}
 		}
 
-		// Re-scan for best name if specific field was not found or not specified
+		// Fallback if explicit fieldName match failed
 		if !foundName {
-			// Extract all fields to a map for easy lookup
-			fields := make(map[string]string)
-			for _, field := range innerLit.Elts {
-				if kv, ok := field.(*ast.KeyValueExpr); ok {
-					if keyIdent, ok := kv.Key.(*ast.Ident); ok {
-						val := ""
-						if vLit, ok := kv.Value.(*ast.BasicLit); ok && vLit.Kind == token.STRING {
-							val, _ = unquote(vLit.Value)
-						} else {
-							val = "dynamic:" + exprToString(kv.Value)
-						}
-						fields[strings.ToLower(keyIdent.Name)] = val
-					}
-				}
-			}
-
 			// Priority: name > desc > title > case > scenario
 			candidates := []string{"name", "desc", "title", "case", "scenario"}
 			for _, key := range candidates {
@@ -303,16 +261,16 @@ func extractFromTable(fset *token.FileSet, lit *ast.CompositeLit, fieldName stri
 					break
 				}
 			}
+		}
 
-			if v, ok := fields["desc"]; ok {
-				foundDesc = v
-			}
+		// Desc fallback
+		if v, ok := fields["desc"]; ok {
+			foundDesc = v
 		}
 
 		if c.Name == "" {
 			c.Name = "unnamed_case"
 		}
-
 		c.Desc = foundDesc
 		cases = append(cases, c)
 	}

@@ -34,6 +34,7 @@ func TestParseDir(t *testing.T) {
 		"TestPatternMixed":         1,
 		"TestPatternImplicitField": 1,
 		"TestPatternVarDecl":       1,
+		"TestPatternUnkeyed":       1,
 	}
 
 	for name, count := range expected {
