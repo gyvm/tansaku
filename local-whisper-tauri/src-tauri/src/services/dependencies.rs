@@ -86,6 +86,8 @@ fn ffmpeg_download_url() -> Result<String> {
 
     let os = env::consts::OS;
     let arch = env::consts::ARCH;
+    // NOTE: Linux is currently unsupported here; add a Linux FFmpeg URL or fallback
+    // to avoid returning Unsupported platform and blocking transcription.
     let url = match (os, arch) {
         ("windows", "x86_64") => {
             "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n6.1-latest-win64-gpl-6.1.zip"
