@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { getCurrentWebview } from '@tauri-apps/api/webview'
 import { open } from '@tauri-apps/plugin-dialog'
 import './App.css'
 
@@ -41,6 +42,7 @@ function App() {
 
   useEffect(() => {
     let unlistenPromise
+    let unlistenFileDrop
     unlistenPromise = listen('transcription:log', (event) => {
       setLogs((prev) => [
         ...prev,
@@ -49,7 +51,28 @@ function App() {
           timestamp: new Date(),
         },
       ])
-    })
+      })
+
+    getCurrentWebview()
+      .onDragDropEvent((event) => {
+        if (event.payload.type === 'drop') {
+          const path = event.payload.paths?.[0]
+          if (!path) return
+          const name = path.split(/[/\\]/).pop() || path
+          handleFile({ path, name, size: null })
+          setIsDragging(false)
+          return
+        }
+        if (event.payload.type === 'enter' || event.payload.type === 'over') {
+          setIsDragging(true)
+          return
+        }
+        setIsDragging(false)
+      })
+      .then((unlisten) => {
+        unlistenFileDrop = unlisten
+      })
+      .catch(() => {})
 
     invoke('ensure_dependencies')
       .then(() => setEngineStatus('ready'))
@@ -61,6 +84,9 @@ function App() {
     return () => {
       if (unlistenPromise) {
         unlistenPromise.then((unlisten) => unlisten()).catch(() => {})
+      }
+      if (unlistenFileDrop) {
+        unlistenFileDrop()
       }
     }
   }, [])
