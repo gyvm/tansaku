@@ -1,0 +1,15 @@
+# Models
+*.bin
+*.wav
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+build/
+.DS_Store
+
+# Misc
+*.swp
+*~
