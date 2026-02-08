@@ -39,6 +39,8 @@ function App() {
   const [result, setResult] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [isDragging, setIsDragging] = useState(false)
+  const [diarizationEnabled, setDiarizationEnabled] = useState(true)
+  const [speakerCount, setSpeakerCount] = useState('auto')
 
   useEffect(() => {
     let unlistenPromise
@@ -148,7 +150,15 @@ function App() {
     setResult(null)
 
     try {
-      const response = await invoke('transcribe_file', { inputPath: filePath })
+      const response = await invoke('transcribe_file', {
+        inputPath: filePath,
+        options: {
+          diarization: {
+            enabled: diarizationEnabled,
+            speakerCount: speakerCount === 'auto' ? null : Number(speakerCount),
+          },
+        },
+      })
       setResult(response)
       setEngineStatus('ready')
     } catch (error) {
@@ -198,6 +208,30 @@ function App() {
               <div>
                 <p className="file-name">{selectedFile.name}</p>
                 <p className="file-meta">{formatBytes(selectedFile.size)}</p>
+                <div className="options">
+                  <label className="toggle">
+                    <input
+                      type="checkbox"
+                      checked={diarizationEnabled}
+                      onChange={(event) => setDiarizationEnabled(event.target.checked)}
+                    />
+                    <span>Speaker separation</span>
+                  </label>
+                  <label className="select">
+                    <span>Speakers</span>
+                    <select
+                      value={speakerCount}
+                      onChange={(event) => setSpeakerCount(event.target.value)}
+                      disabled={!diarizationEnabled}
+                    >
+                      <option value="auto">Auto</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                    </select>
+                  </label>
+                </div>
               </div>
               <button
                 type="button"
@@ -241,9 +275,12 @@ function App() {
             <div className="segment-list">
               {result.segments.map((segment, index) => (
                 <div className="segment" key={`${segment.start}-${segment.end}-${index}`}>
-                  <span className="segment-time">
-                    {formatTimestamp(segment.start)} - {formatTimestamp(segment.end)}
-                  </span>
+                  <div className="segment-header">
+                    <span className="segment-time">
+                      {formatTimestamp(segment.start)} - {formatTimestamp(segment.end)}
+                    </span>
+                    {segment.speaker && <span className="segment-speaker">{segment.speaker}</span>}
+                  </div>
                   <p className="segment-text">{segment.text}</p>
                 </div>
               ))}

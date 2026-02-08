@@ -10,10 +10,18 @@ use zip::ZipArchive;
 
 pub const DEFAULT_MODEL: &str = "base";
 const MODEL_URL_BASE: &str = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main";
+const VAD_MODEL_URL: &str =
+    "https://raw.githubusercontent.com/ricky0123/vad/master/silero_vad_legacy.onnx";
+const SPEAKER_EMBEDDING_MODEL_URL: &str = "https://huggingface.co/csukuangfj/speaker-embedding-models/resolve/main/wespeaker_zh_cnceleb_resnet34_LM.onnx";
 
 pub struct DependencyPaths {
     pub ffmpeg: PathBuf,
     pub model: PathBuf,
+}
+
+pub struct DiarizationPaths {
+    pub vad: PathBuf,
+    pub embedding: PathBuf,
 }
 
 pub fn ensure_dependencies(
@@ -24,6 +32,31 @@ pub fn ensure_dependencies(
     let ffmpeg = ensure_ffmpeg(data_dir, log)?;
     let model = ensure_model(model, data_dir, log)?;
     Ok(DependencyPaths { ffmpeg, model })
+}
+
+pub fn ensure_diarization_models(data_dir: &Path, log: &impl Fn(&str)) -> Result<DiarizationPaths> {
+    let models_dir = data_dir.join("models").join("diarization");
+    fs::create_dir_all(&models_dir)?;
+
+    let vad = models_dir.join("silero_vad_legacy.onnx");
+    if !vad.exists() {
+        log("Downloading VAD model");
+        download_file(VAD_MODEL_URL, &vad)?;
+        log("VAD model installed");
+    } else {
+        log("VAD model ready");
+    }
+
+    let embedding = models_dir.join("wespeaker_zh_cnceleb_resnet34_LM.onnx");
+    if !embedding.exists() {
+        log("Downloading speaker embedding model");
+        download_file(SPEAKER_EMBEDDING_MODEL_URL, &embedding)?;
+        log("Speaker embedding model installed");
+    } else {
+        log("Speaker embedding model ready");
+    }
+
+    Ok(DiarizationPaths { vad, embedding })
 }
 
 pub fn ensure_ffmpeg(data_dir: &Path, log: &impl Fn(&str)) -> Result<PathBuf> {
