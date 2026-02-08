@@ -9,6 +9,7 @@ pub struct Segment {
     pub start: f32,
     pub end: f32,
     pub text: String,
+    pub speaker: Option<String>,
 }
 
 pub fn load_audio_samples(
@@ -95,6 +96,36 @@ pub fn load_audio_samples(
     Ok(samples)
 }
 
+pub fn export_audio_wav(
+    ffmpeg_path: &Path,
+    input: &Path,
+    output: &Path,
+    log: &impl Fn(&str),
+) -> Result<()> {
+    log("Exporting WAV for diarization");
+    let status = Command::new(ffmpeg_path)
+        .arg("-hide_banner")
+        .arg("-loglevel")
+        .arg("error")
+        .arg("-y")
+        .arg("-i")
+        .arg(input)
+        .arg("-vn")
+        .arg("-ac")
+        .arg("1")
+        .arg("-ar")
+        .arg("16000")
+        .arg("-f")
+        .arg("wav")
+        .arg(output)
+        .status()
+        .with_context(|| "Failed to run ffmpeg for wav export")?;
+    if !status.success() {
+        return Err(anyhow!("ffmpeg wav export failed"));
+    }
+    Ok(())
+}
+
 pub fn transcribe(
     model_path: &Path,
     samples: &[f32],
@@ -143,7 +174,12 @@ pub fn transcribe(
         let end = segment.end_timestamp() as f32 / 100.0;
         let text = segment.to_str()?.trim().to_string();
         if !text.is_empty() {
-            segments.push(Segment { start, end, text });
+            segments.push(Segment {
+                start,
+                end,
+                text,
+                speaker: None,
+            });
         }
     }
     log("Transcription complete");
