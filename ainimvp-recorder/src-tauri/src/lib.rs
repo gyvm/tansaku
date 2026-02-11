@@ -1,40 +1,6 @@
 use tauri::command;
 use std::ffi::CString;
-
-#[cfg(target_os = "macos")]
-extern "C" {
-    fn start_recording(path: *const i8, include_mic: bool, include_sys: bool) -> bool;
-    fn stop_recording() -> bool;
-    fn check_permissions() -> i32;
-    fn request_permissions();
-    fn open_permissions_settings();
-}
-
-#[command(rename_all = "snake_case")]
-fn start_recording(path: String, include_mic: bool, include_sys: bool) -> Result<(), String> {
-    #[cfg(target_os = "macos")]
-    unsafe {
-        let c_path = CString::new(path).unwrap();
-        // Call the extern C function. Note: same name as wrapper function but extern block is separate.
-        // Rust allows shadowing but here `start_recording` refers to the function itself.
-        // To avoid ambiguity, I should rename the extern function import or the wrapper.
-        // I will rename the extern function import in `extern "C"`.
-        if native_start_recording(c_path.as_ptr(), include_mic, include_sys) {
-            Ok(())
-        } else {
-            Err("Failed to start recording".into())
-        }
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        println!("Mock: Start recording to {} (mic: {}, sys: {})", path, include_mic, include_sys);
-        Ok(())
-    }
-}
-
-#[cfg(target_os = "macos")]
-use native_start_recording as native_start_recording; // This is not valid syntax for extern block renaming directly inside unsafe?
-// No, I should use `link_name` or just rename in extern block.
+use chrono::Local;
 
 #[cfg(target_os = "macos")]
 extern "C" {
@@ -47,8 +13,48 @@ extern "C" {
     #[link_name = "check_permissions"]
     fn native_check_permissions() -> i32;
 
+    #[link_name = "request_permissions"]
+    fn native_request_permissions();
+
     #[link_name = "open_permissions_settings"]
     fn native_open_permissions_settings();
+}
+
+#[command(rename_all = "snake_case")]
+fn start_recording(path: String, include_mic: bool, include_sys: bool) -> Result<(), String> {
+    // Expand home directory if needed
+    let expanded_path = if path.starts_with("~/") {
+        if let Some(home) = dirs::home_dir() {
+             path.replacen("~", home.to_str().unwrap(), 1)
+        } else {
+            path
+        }
+    } else {
+        path
+    };
+
+    // Generate filename: AIniMVP_YYYYMMDD_HHMMSS.wav
+    let now = Local::now();
+    let filename = format!("AIniMVP_{}.wav", now.format("%Y%m%d_%H%M%S"));
+
+    // Combine path and filename
+    let path_buf = std::path::Path::new(&expanded_path).join(filename);
+    let full_path = path_buf.to_string_lossy().to_string();
+
+    #[cfg(target_os = "macos")]
+    unsafe {
+        let c_path = CString::new(full_path).unwrap();
+        if native_start_recording(c_path.as_ptr(), include_mic, include_sys) {
+            Ok(())
+        } else {
+            Err("Failed to start recording".into())
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        println!("Mock: Start recording to {} (mic: {}, sys: {})", full_path, include_mic, include_sys);
+        Ok(())
+    }
 }
 
 #[command(rename_all = "snake_case")]

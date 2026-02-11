@@ -31,9 +31,9 @@ public func stop_recording() -> Bool {
 }
 
 @_cdecl("check_permissions")
-public func check_permissions() -> Int {
+public func check_permissions() -> Int32 {
     // Return bitmask: 1 = mic, 2 = screen
-    var status = 0
+    var status: Int32 = 0
 
     // Mic check
     switch AVCaptureDevice.authorizationStatus(for: .audio) {
@@ -277,15 +277,16 @@ class AudioRecorder: NSObject, SCStreamOutput {
             }
         } else if buffers.count == 1 {
             let mData = buffers[0].mData?.assumingMemoryBound(to: Float.self)
-            let frameCount = Int(buffers[0].mDataByteSize) / MemoryLayout<Float>.size
+            let totalSamples = Int(buffers[0].mDataByteSize) / MemoryLayout<Float>.size
 
             // Assume interleaved if 1 buffer? Or Mono?
             // If mNumberChannels is 2, it's interleaved stereo.
             // If mNumberChannels is 1, it's mono.
-            // We can check buffers[0].mNumberChannels
 
             let channels = buffers[0].mNumberChannels
             if channels == 2 {
+                // Corrected loop: iterate over FRAMES, not samples
+                let frameCount = totalSamples / 2
                 for i in 0..<frameCount {
                     // L, R, L, R...
                     push(mData?[i*2] ?? 0)
@@ -293,7 +294,7 @@ class AudioRecorder: NSObject, SCStreamOutput {
                 }
             } else {
                 // Mono -> Stereo
-                for i in 0..<frameCount {
+                for i in 0..<totalSamples {
                     let val = mData?[i] ?? 0
                     push(val)
                     push(val)
