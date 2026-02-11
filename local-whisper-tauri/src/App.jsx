@@ -306,7 +306,11 @@ function App() {
                   type="button"
                   className="btn btn-primary"
                   onClick={startAnalysis}
-                  disabled={engineStatus === 'booting' || engineStatus === 'transcribing'}
+                  disabled={
+                    engineStatus === 'booting' ||
+                    engineStatus === 'transcribing' ||
+                    engineStatus === 'diarizing'
+                  }
                 >
                   {engineStatus === 'transcribing' ? 'Working...' : 'Start analysis'}
                 </button>

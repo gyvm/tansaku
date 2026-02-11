@@ -132,8 +132,9 @@ def main():
             kwargs["weights_only"] = False
         return original_torch_load(*args, **kwargs)
 
+    torch.load = patched_torch_load
+    safe_globals_context = None
     try:
-        torch.load = patched_torch_load
         import torch.serialization as torch_serialization
         from torch.serialization import add_safe_globals, safe_globals
         from torch.torch_version import TorchVersion
@@ -142,14 +143,19 @@ def main():
         if hasattr(torch_serialization, "_default_to_weights_only"):
             torch_serialization._default_to_weights_only(False)
         add_safe_globals([TorchVersion, Specifications, Problem, Task])
-        with safe_globals([TorchVersion, Specifications, Problem, Task]):
-            pipeline = Pipeline.from_pretrained(args.model, use_auth_token=token)
+        safe_globals_context = safe_globals(
+            [TorchVersion, Specifications, Problem, Task]
+        )
     except Exception:
-        torch.load = patched_torch_load
         if hasattr(torch, "serialization") and hasattr(
             torch.serialization, "_default_to_weights_only"
         ):
             torch.serialization._default_to_weights_only(False)
+
+    if safe_globals_context:
+        with safe_globals_context:
+            pipeline = Pipeline.from_pretrained(args.model, use_auth_token=token)
+    else:
         pipeline = Pipeline.from_pretrained(args.model, use_auth_token=token)
     device = torch.device(args.device)
     pipeline.to(device)
