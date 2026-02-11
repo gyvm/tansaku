@@ -95,7 +95,10 @@ class AudioRecorder: ObservableObject {
     }
 
     private func convertAudio() async {
+        self.lock.lock()
         let samples = self.rawSamples
+        self.lock.unlock()
+
         let srcRate = self.rawSampleRate
 
         guard !samples.isEmpty else { return }

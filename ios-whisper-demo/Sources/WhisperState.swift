@@ -100,8 +100,8 @@ class WhisperState: ObservableObject {
             // Extract text
             let n_segments = whisper_full_n_segments(ctx)
             var result = ""
-            for i in 0..<n_segments {
-                if let textPtr = whisper_full_get_segment_text(ctx, i) {
+            for i in 0..<Int(n_segments) {
+                if let textPtr = whisper_full_get_segment_text(ctx, Int32(i)) {
                     let text = String(cString: textPtr)
                     result += text
                 }
