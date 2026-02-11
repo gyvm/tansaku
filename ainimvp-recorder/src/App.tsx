@@ -10,6 +10,13 @@ interface PermissionStatus {
   screen: boolean;
 }
 
+interface SystemInfo {
+  os: string;
+  version: string;
+  supported: boolean;
+  minimum: string;
+}
+
 function App() {
   const [status, setStatus] = useState<RecordingStatus>("idle");
   const [timer, setTimer] = useState(0);
@@ -18,11 +25,15 @@ function App() {
   const [includeSys, setIncludeSys] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [permissions, setPermissions] = useState<PermissionStatus>({ mic: false, screen: false });
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
 
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     checkPermissions();
+    invoke<SystemInfo>("get_system_info")
+      .then((info) => setSystemInfo(info))
+      .catch(() => setSystemInfo({ os: "unknown", version: "unknown", supported: true, minimum: "20.0" }));
     invoke("get_default_save_path")
       .then((path) => setSavePath(path as string))
       .catch(() => {}); // Ignore error if command not found
@@ -59,8 +70,8 @@ function App() {
     try {
       await invoke("start_recording", {
         path: savePath,
-        includeMic,
-        includeSys,
+        include_mic: includeMic,
+        include_sys: includeSys,
       });
       setStatus("recording");
       startTimer();
@@ -93,6 +104,16 @@ function App() {
     }
   };
 
+  const handleRequestPermissions = async () => {
+    try {
+      await invoke("request_permissions");
+    } catch (e) {
+      console.error(e);
+    } finally {
+      window.setTimeout(checkPermissions, 500);
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -101,6 +122,7 @@ function App() {
   };
 
   const isRecordingOrStopping = status === "recording" || status === "preparing" || status === "stopping";
+  const systemSupported = systemInfo?.supported ?? true;
 
   return (
     <div className="flex flex-col h-screen bg-zinc-900 text-zinc-100 font-sans selection:bg-blue-500/30">
@@ -146,9 +168,9 @@ function App() {
           ) : (
             <button
               onClick={handleStart}
-              disabled={(!permissions.mic && includeMic) || (!permissions.screen && includeSys)}
+              disabled={!systemSupported || (!permissions.mic && includeMic) || (!permissions.screen && includeSys)}
               className={clsx("group relative flex items-center justify-center w-20 h-20 rounded-full bg-zinc-100 shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all",
-                ((!permissions.mic && includeMic) || (!permissions.screen && includeSys)) ? "opacity-30 cursor-not-allowed bg-zinc-500" : "hover:bg-zinc-200 active:bg-zinc-300"
+                (!systemSupported || (!permissions.mic && includeMic) || (!permissions.screen && includeSys)) ? "opacity-30 cursor-not-allowed bg-zinc-500" : "hover:bg-zinc-200 active:bg-zinc-300"
               )}
             >
               <div className="w-8 h-8 rounded-full bg-red-600 group-hover:scale-110 transition-transform" />
@@ -192,7 +214,19 @@ function App() {
         </div>
 
         {/* Permissions Warning */}
-        {((!permissions.mic && includeMic) || (!permissions.screen && includeSys)) && (
+        {!systemSupported && systemInfo && (
+          <div className="bg-amber-950/30 border border-amber-900/30 p-3 rounded-lg flex items-start gap-3 mt-[-10px]">
+            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-1">
+              <p className="text-xs text-amber-200 font-medium">Unsupported macOS Version</p>
+              <p className="text-[10px] text-amber-400/80 leading-relaxed">
+                This app requires macOS {systemInfo.minimum}+ to support System Audio Recording Only.
+                Current: macOS {systemInfo.version}.
+              </p>
+            </div>
+          </div>
+        )}
+        {systemSupported && ((!permissions.mic && includeMic) || (!permissions.screen && includeSys)) && (
           <div className="bg-amber-950/30 border border-amber-900/30 p-3 rounded-lg flex items-start gap-3 mt-[-10px]">
             <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
             <div className="flex flex-col gap-1">
@@ -205,6 +239,12 @@ function App() {
                 className="text-[10px] text-amber-500 underline self-start hover:text-amber-400 mt-1 cursor-pointer"
               >
                 Open System Settings
+              </button>
+              <button
+                onClick={handleRequestPermissions}
+                className="text-[10px] text-amber-500 underline self-start hover:text-amber-400 mt-1 cursor-pointer"
+              >
+                Request Permissions
               </button>
             </div>
           </div>
