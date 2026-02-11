@@ -7,7 +7,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             commands::transcription::ensure_dependencies,
-            commands::transcription::transcribe_file
+            commands::transcription::transcribe_file,
+            commands::diarization::diarize_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

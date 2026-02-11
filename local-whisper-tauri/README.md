@@ -1,16 +1,71 @@
-# React + Vite
+# Local Whisper Tauri
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+ローカルで文字起こしと話者分離を実行するデスクトップアプリです。音声ファイルを選択して、ワンクリックで文字起こし＋話者分離（任意）を行えます。
 
-Currently, two official plugins are available:
+## 主な機能
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 音声/動画ファイルの文字起こし
+- 話者分離（pyannote.audio）
+- 話者ラベル付きのセグメント表示
+- Markdown 形式での書き出し
 
-## React Compiler
+## セットアップ
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. フロントエンド依存
 
-## Expanding the ESLint configuration
+```bash
+cd local-whisper-tauri
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 2. 話者分離（pyannote.audio）用 venv
+
+衝突回避のため、専用 venv を作成します。
+
+```bash
+cd local-whisper-tauri
+python3 -m venv .venv-diarize
+source .venv-diarize/bin/activate
+pip install -r sidecar/requirements.txt
+```
+
+### 3. 環境変数
+
+リポジトリ直下の `.env` に Hugging Face トークンを入れてください。
+
+```
+PYANNOTE_AUTH_TOKEN=YOUR_HF_TOKEN
+```
+
+## 起動
+
+```bash
+cd local-whisper-tauri
+export LOCAL_WHISPER_PYTHON="/Users/yosuke/GitHub/tansaku/local-whisper-tauri/.venv-diarize/bin/python"
+npm run tauri dev
+```
+
+## 使い方（UI）
+
+1. 音声ファイルをドラッグ&ドロップ、または Open で選択
+2. 「Enable diarization」をONにする場合は話者数（Auto/2/3）を選択
+3. 「Start analysis」を押す
+4. Transcript に話者タグが付いたセグメントが表示される
+5. 「Download Markdown」で Markdown を保存
+
+## コマンドでの話者分離テスト
+
+UI を使わずに sidecar を直接実行できます。
+
+```bash
+cd /Users/yosuke/GitHub/tansaku/local-whisper-tauri
+set -a; source /Users/yosuke/GitHub/tansaku/.env; set +a
+ffmpeg -y -i "/Users/yosuke/Downloads/download.mp3" -ac 1 -ar 16000 -f wav "/Users/yosuke/Downloads/diarize-input.wav"
+/Users/yosuke/GitHub/tansaku/local-whisper-tauri/.venv-diarize/bin/python \
+  /Users/yosuke/GitHub/tansaku/local-whisper-tauri/sidecar/diarize.py \
+  --audio "/Users/yosuke/Downloads/diarize-input.wav" \
+  --out "/Users/yosuke/Downloads/diarize-output.json" \
+  --num-speakers 2
+```
+
+出力 JSON は `[{speaker, start, end}, ...]` の形式です。

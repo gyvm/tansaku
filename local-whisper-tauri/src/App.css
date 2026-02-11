@@ -74,6 +74,12 @@
   animation: pulse 1.6s ease infinite;
 }
 
+.status-diarizing {
+  background: #5a8f84;
+  box-shadow: 0 0 0 4px rgba(90, 143, 132, 0.3);
+  animation: pulse 1.6s ease infinite;
+}
+
 .status-error {
   background: #c2543c;
   box-shadow: 0 0 0 4px rgba(194, 84, 60, 0.3);
@@ -119,6 +125,19 @@
   font-size: 0.95rem;
 }
 
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panel-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .dropzone {
   border: 2px dashed rgba(120, 90, 61, 0.25);
   transition: border-color 0.3s ease, background 0.3s ease;
@@ -152,6 +171,35 @@
   justify-content: space-between;
   gap: 16px;
   border: 1px solid rgba(120, 90, 61, 0.12);
+}
+
+.file-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #3c332b;
+}
+
+.select {
+  border-radius: 999px;
+  border: 1px solid rgba(120, 90, 61, 0.3);
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  color: #3c332b;
+}
+
+.select:disabled {
+  opacity: 0.6;
 }
 
 .file-name {
@@ -256,6 +304,21 @@
   color: #6f5f4f;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.speaker-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(120, 90, 61, 0.12);
+  color: #4e3f34;
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
 }
 
 .segment-text {
@@ -276,6 +339,15 @@
   border-radius: 12px;
   background: rgba(194, 84, 60, 0.12);
   color: #7d2f22;
+  font-weight: 600;
+}
+
+.info-banner {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(60, 139, 111, 0.12);
+  color: #2f5f4a;
   font-weight: 600;
 }
 

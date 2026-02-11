@@ -9,8 +9,15 @@ const statusLabels = {
   booting: 'Preparing engine',
   ready: 'Ready',
   transcribing: 'Transcribing',
+  diarizing: 'Diarizing',
   error: 'Needs attention',
 }
+
+const speakerOptions = [
+  { label: 'Auto', value: 'auto' },
+  { label: '2 speakers', value: '2' },
+  { label: '3 speakers', value: '3' },
+]
 
 const formatBytes = (value) => {
   if (!value && value !== 0) return 'Unknown size'
@@ -32,18 +39,52 @@ const formatTimestamp = (seconds) => {
   return [hours, minutes, secs].map((part) => String(part).padStart(2, '0')).join(':')
 }
 
+const assignSpeakers = (segments, diarizationSegments) => {
+  if (!segments?.length || !diarizationSegments?.length) return segments
+  return segments.map((segment) => {
+    let bestSpeaker = 'UNKNOWN'
+    let bestOverlap = 0
+    diarizationSegments.forEach((diarization) => {
+      const overlap = Math.max(
+        0,
+        Math.min(segment.end, diarization.end) - Math.max(segment.start, diarization.start),
+      )
+      if (overlap > bestOverlap) {
+        bestOverlap = overlap
+        bestSpeaker = diarization.speaker
+      }
+    })
+    return { ...segment, speaker: bestSpeaker }
+  })
+}
+
+const buildMarkdown = (segments, fileName) => {
+  if (!segments?.length) return ''
+  const title = fileName ? `# ${fileName}` : '# Transcript'
+  const lines = segments.map((segment) => {
+    const speaker = segment.speaker ? `[${segment.speaker}] ` : ''
+    const time = `${formatTimestamp(segment.start)} - ${formatTimestamp(segment.end)}`
+    return `- ${speaker}${time}\n  ${segment.text}`
+  })
+  return [title, '', ...lines].join('\n')
+}
+
 function App() {
   const [selectedFile, setSelectedFile] = useState(null)
   const [engineStatus, setEngineStatus] = useState('booting')
   const [logs, setLogs] = useState([])
   const [result, setResult] = useState(null)
+  const [diarizationResult, setDiarizationResult] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [isDragging, setIsDragging] = useState(false)
+  const [diarizationEnabled, setDiarizationEnabled] = useState(false)
+  const [speakerCount, setSpeakerCount] = useState('auto')
 
   useEffect(() => {
     let unlistenPromise
+    let unlistenDiarizationPromise
     let unlistenFileDrop
-    unlistenPromise = listen('transcription:log', (event) => {
+    const addLog = (event) => {
       setLogs((prev) => [
         ...prev,
         {
@@ -51,7 +92,10 @@ function App() {
           timestamp: new Date(),
         },
       ])
-      })
+    }
+
+    unlistenPromise = listen('transcription:log', addLog)
+    unlistenDiarizationPromise = listen('diarization:log', addLog)
 
     getCurrentWebview()
       .onDragDropEvent((event) => {
@@ -85,6 +129,9 @@ function App() {
       if (unlistenPromise) {
         unlistenPromise.then((unlisten) => unlisten()).catch(() => {})
       }
+      if (unlistenDiarizationPromise) {
+        unlistenDiarizationPromise.then((unlisten) => unlisten()).catch(() => {})
+      }
       if (unlistenFileDrop) {
         unlistenFileDrop()
       }
@@ -96,10 +143,16 @@ function App() {
     return selectedFile.path || ''
   }, [selectedFile])
 
+  const mergedSegments = useMemo(() => {
+    if (!result?.segments) return null
+    return assignSpeakers(result.segments, diarizationResult?.segments)
+  }, [result, diarizationResult])
+
   const handleFile = (file) => {
     if (!file) return
     setSelectedFile(file)
     setResult(null)
+    setDiarizationResult(null)
     setErrorMessage('')
     setLogs([])
   }
@@ -133,9 +186,9 @@ function App() {
     })
   }
 
-  const startTranscription = async () => {
+  const startAnalysis = async () => {
     if (!selectedFile) {
-      setErrorMessage('Select a file before starting transcription.')
+      setErrorMessage('Select a file before starting analysis.')
       return
     }
     if (!filePath) {
@@ -146,15 +199,44 @@ function App() {
     setEngineStatus('transcribing')
     setErrorMessage('')
     setResult(null)
+    setDiarizationResult(null)
 
     try {
-      const response = await invoke('transcribe_file', { inputPath: filePath })
-      setResult(response)
+      const transcription = await invoke('transcribe_file', { inputPath: filePath })
+      setResult(transcription)
+      if (diarizationEnabled) {
+        setEngineStatus('diarizing')
+        setLogs((prev) => [
+          ...prev,
+          {
+            message: 'Starting diarization',
+            timestamp: new Date(),
+          },
+        ])
+        const numSpeakers = speakerCount === 'auto' ? null : Number(speakerCount)
+        const diarization = await invoke('diarize_file', {
+          inputPath: filePath,
+          numSpeakers,
+        })
+        setDiarizationResult(diarization)
+      }
       setEngineStatus('ready')
     } catch (error) {
       setEngineStatus('error')
       setErrorMessage(String(error))
     }
+  }
+
+  const handleDownloadMarkdown = () => {
+    if (!mergedSegments?.length) return
+    const markdown = buildMarkdown(mergedSegments, selectedFile?.name)
+    const blob = new Blob([markdown], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${selectedFile?.name || 'transcript'}.md`
+    link.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -199,22 +281,46 @@ function App() {
                 <p className="file-name">{selectedFile.name}</p>
                 <p className="file-meta">{formatBytes(selectedFile.size)}</p>
               </div>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={startTranscription}
-                disabled={engineStatus === 'booting' || engineStatus === 'transcribing'}
-              >
-                {engineStatus === 'transcribing' ? 'Working...' : 'Start transcription'}
-              </button>
+              <div className="file-actions">
+                <label className="toggle">
+                  <input
+                    type="checkbox"
+                    checked={diarizationEnabled}
+                    onChange={(event) => setDiarizationEnabled(event.target.checked)}
+                  />
+                  <span>Enable diarization</span>
+                </label>
+                <select
+                  className="select"
+                  value={speakerCount}
+                  onChange={(event) => setSpeakerCount(event.target.value)}
+                  disabled={!diarizationEnabled}
+                >
+                  {speakerOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={startAnalysis}
+                  disabled={engineStatus === 'booting' || engineStatus === 'transcribing'}
+                >
+                  {engineStatus === 'transcribing' ? 'Working...' : 'Start analysis'}
+                </button>
+              </div>
             </div>
           )}
         </section>
 
         <section className="panel logs">
           <div className="panel-header">
-            <p className="panel-title">Session log</p>
-            <p className="panel-description">Download, conversion, and inference steps appear here.</p>
+            <div className="panel-header-text">
+              <p className="panel-title">Session log</p>
+              <p className="panel-description">Download, conversion, and inference steps appear here.</p>
+            </div>
           </div>
           <div className="log-list">
             {logs.length === 0 ? (
@@ -232,16 +338,32 @@ function App() {
 
         <section className="panel result">
           <div className="panel-header">
-            <p className="panel-title">Transcript</p>
-            <p className="panel-description">Segmented output with timestamps.</p>
+            <div className="panel-header-text">
+              <p className="panel-title">Transcript</p>
+              <p className="panel-description">Segmented output with timestamps.</p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={handleDownloadMarkdown}
+              disabled={!mergedSegments?.length}
+            >
+              Download Markdown
+            </button>
           </div>
           {errorMessage && <p className="error-banner">{errorMessage}</p>}
+          {diarizationEnabled && result?.segments && !diarizationResult && engineStatus === 'diarizing' && (
+            <p className="info-banner">Diarization is running. Speaker labels will appear when ready.</p>
+          )}
           {!result && !errorMessage && <p className="placeholder">Your transcript will appear here.</p>}
-          {result?.segments && (
+          {mergedSegments && (
             <div className="segment-list">
-              {result.segments.map((segment, index) => (
+              {mergedSegments.map((segment, index) => (
                 <div className="segment" key={`${segment.start}-${segment.end}-${index}`}>
                   <span className="segment-time">
+                    {segment.speaker ? (
+                      <span className="speaker-chip">{segment.speaker}</span>
+                    ) : null}
                     {formatTimestamp(segment.start)} - {formatTimestamp(segment.end)}
                   </span>
                   <p className="segment-text">{segment.text}</p>
@@ -250,6 +372,7 @@ function App() {
             </div>
           )}
         </section>
+
       </main>
     </div>
   )
