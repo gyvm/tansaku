@@ -35,9 +35,9 @@ def main(repo, depth, show_all, verbose):
 
         limit = None if show_all else depth
         if verbose:
-            console.print(f"[dim]Fetching commits (Limit: {limit})...[/dim]")
+            console.print(f"[dim]Fetching commits (Limit: {limit if limit else 'All'})...[/dim]")
 
-        commits = parser.get_ordered_commits(limit=limit if limit else 10000)
+        commits = parser.get_ordered_commits(limit=limit)
 
         if not commits:
             console.print("[yellow]No commits found.[/yellow]")
