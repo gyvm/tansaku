@@ -1,7 +1,39 @@
-# Tauri + React + Typescript
+# AIniMVP Recorder
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+macOS向けの、マイク音声とシステム音（内部音声）を同時に録音できるシンプルなレコーダーです。
 
-## Recommended IDE Setup
+## 特徴
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+- **デュアル録音**: マイク入力とシステム全体の音声を個別にオン/オフして同時録音可能。
+- **ハウリング・フリー**: 録音中の音がスピーカーから漏れてループすることを防ぐ設計。
+- **高音質**: デバイスのネイティブサンプリングレートを自動検出し、高品質なWAV形式で保存。
+- **軽量**: ScreenCaptureKitを利用した、macOS標準に準拠した実装。
+
+## 動作環境
+
+- macOS 12.3 以上 (ScreenCaptureKitの制限により)
+- マイクおよび画面録画のアクセス権限が必要です。
+
+## セットアップ
+
+### 開発
+
+```bash
+npm install
+npm run tauri dev
+```
+
+### ビルド
+
+```bash
+npm run tauri build
+```
+
+## 権限について
+
+初回起動時、または録音開始時にマイクと画面録画の許可が求められます。システム音を録音するためには「画面録画」の権限が必要です（実際に画面を録画するわけではなく、システムオーディオストリームを取得するためにAppleが規定している権限です）。
+
+## ログの確認
+
+動作が不安定な場合は、以下のログファイルを確認してください。
+`~/Library/Logs/AIniMVP Recorder.log`

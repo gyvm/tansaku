@@ -1,6 +1,6 @@
-use tauri::command;
-use std::ffi::CString;
 use chrono::Local;
+use std::ffi::CString;
+use tauri::command;
 
 #[cfg(target_os = "macos")]
 extern "C" {
@@ -25,7 +25,7 @@ fn start_recording(path: String, include_mic: bool, include_sys: bool) -> Result
     // Expand home directory if needed
     let expanded_path = if path.starts_with("~/") {
         if let Some(home) = dirs::home_dir() {
-             path.replacen("~", home.to_str().unwrap(), 1)
+            path.replacen("~", home.to_str().unwrap(), 1)
         } else {
             path
         }
@@ -52,7 +52,10 @@ fn start_recording(path: String, include_mic: bool, include_sys: bool) -> Result
     }
     #[cfg(not(target_os = "macos"))]
     {
-        println!("Mock: Start recording to {} (mic: {}, sys: {})", full_path, include_mic, include_sys);
+        println!(
+            "Mock: Start recording to {} (mic: {}, sys: {})",
+            full_path, include_mic, include_sys
+        );
         Ok(())
     }
 }
@@ -64,7 +67,7 @@ fn stop_recording() -> Result<(), String> {
         if native_stop_recording() {
             Ok(())
         } else {
-             Err("Failed to stop".into())
+            Err("Failed to stop".into())
         }
     }
     #[cfg(not(target_os = "macos"))]
@@ -104,10 +107,20 @@ fn open_permissions_settings() {
 }
 
 #[command(rename_all = "snake_case")]
+fn request_permissions() {
+    #[cfg(target_os = "macos")]
+    unsafe {
+        native_request_permissions();
+    }
+    #[cfg(not(target_os = "macos"))]
+    println!("Mock: Request permissions");
+}
+
+#[command(rename_all = "snake_case")]
 fn open_folder(path: String) -> Result<(), String> {
     let expanded_path = if path.starts_with("~/") {
         if let Some(home) = dirs::home_dir() {
-             path.replacen("~", home.to_str().unwrap(), 1)
+            path.replacen("~", home.to_str().unwrap(), 1)
         } else {
             path
         }
@@ -127,16 +140,62 @@ fn open_folder(path: String) -> Result<(), String> {
     Ok(())
 }
 
+fn parse_version(version: &str) -> (u64, u64, u64) {
+    let mut parts = version
+        .split('.')
+        .filter_map(|part| part.parse::<u64>().ok());
+    let major = parts.next().unwrap_or(0);
+    let minor = parts.next().unwrap_or(0);
+    let patch = parts.next().unwrap_or(0);
+    (major, minor, patch)
+}
+
+#[command(rename_all = "snake_case")]
+fn get_system_info() -> serde_json::Value {
+    #[cfg(target_os = "macos")]
+    {
+        let output = std::process::Command::new("sw_vers")
+            .arg("-productVersion")
+            .output();
+
+        let version = output
+            .ok()
+            .and_then(|out| String::from_utf8(out.stdout).ok())
+            .map(|s| s.trim().to_string())
+            .unwrap_or_else(|| "0.0.0".to_string());
+
+        let current = parse_version(&version);
+        let minimum = (20, 0, 0);
+        let supported = current >= minimum;
+
+        serde_json::json!({
+            "os": "macos",
+            "version": version,
+            "supported": supported,
+            "minimum": "20.0"
+        })
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        serde_json::json!({
+            "os": "other",
+            "version": "unknown",
+            "supported": false,
+            "minimum": "20.0"
+        })
+    }
+}
+
 #[command(rename_all = "snake_case")]
 fn get_default_save_path() -> String {
     if let Some(movies) = dirs::video_dir() {
         movies.join("AIniMVP").to_string_lossy().to_string()
     } else {
-         if let Some(home) = dirs::home_dir() {
-             home.join("Movies/AIniMVP").to_string_lossy().to_string()
-         } else {
-             "~/Movies/AIniMVP".to_string()
-         }
+        if let Some(home) = dirs::home_dir() {
+            home.join("Movies/AIniMVP").to_string_lossy().to_string()
+        } else {
+            "~/Movies/AIniMVP".to_string()
+        }
     }
 }
 
@@ -148,9 +207,11 @@ pub fn run() {
             start_recording,
             stop_recording,
             get_permission_status,
+            request_permissions,
             open_permissions_settings,
             open_folder,
-            get_default_save_path
+            get_default_save_path,
+            get_system_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
