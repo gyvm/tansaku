@@ -1,6 +1,7 @@
-use tauri::command;
-use std::ffi::CString;
 use chrono::Local;
+use std::ffi::CString;
+use tauri::command;
+use tauri::Manager;
 
 #[cfg(target_os = "macos")]
 extern "C" {
@@ -25,7 +26,7 @@ fn start_recording(path: String, include_mic: bool, include_sys: bool) -> Result
     // Expand home directory if needed
     let expanded_path = if path.starts_with("~/") {
         if let Some(home) = dirs::home_dir() {
-             path.replacen("~", home.to_str().unwrap(), 1)
+            path.replacen("~", home.to_str().unwrap(), 1)
         } else {
             path
         }
@@ -52,7 +53,10 @@ fn start_recording(path: String, include_mic: bool, include_sys: bool) -> Result
     }
     #[cfg(not(target_os = "macos"))]
     {
-        println!("Mock: Start recording to {} (mic: {}, sys: {})", full_path, include_mic, include_sys);
+        println!(
+            "Mock: Start recording to {} (mic: {}, sys: {})",
+            full_path, include_mic, include_sys
+        );
         Ok(())
     }
 }
@@ -64,7 +68,7 @@ fn stop_recording() -> Result<(), String> {
         if native_stop_recording() {
             Ok(())
         } else {
-             Err("Failed to stop".into())
+            Err("Failed to stop".into())
         }
     }
     #[cfg(not(target_os = "macos"))]
@@ -107,7 +111,7 @@ fn open_permissions_settings() {
 fn open_folder(path: String) -> Result<(), String> {
     let expanded_path = if path.starts_with("~/") {
         if let Some(home) = dirs::home_dir() {
-             path.replacen("~", home.to_str().unwrap(), 1)
+            path.replacen("~", home.to_str().unwrap(), 1)
         } else {
             path
         }
@@ -132,11 +136,11 @@ fn get_default_save_path() -> String {
     if let Some(movies) = dirs::video_dir() {
         movies.join("AIniMVP").to_string_lossy().to_string()
     } else {
-         if let Some(home) = dirs::home_dir() {
-             home.join("Movies/AIniMVP").to_string_lossy().to_string()
-         } else {
-             "~/Movies/AIniMVP".to_string()
-         }
+        if let Some(home) = dirs::home_dir() {
+            home.join("Movies/AIniMVP").to_string_lossy().to_string()
+        } else {
+            "~/Movies/AIniMVP".to_string()
+        }
     }
 }
 
@@ -144,6 +148,21 @@ fn get_default_save_path() -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .setup(|app| {
+            #[cfg(target_os = "macos")]
+            if let Some(window) = app.get_webview_window("main") {
+                // Keep traffic lights but hide title text on macOS.
+                let _ = window.set_title("");
+            }
+
+            #[cfg(not(target_os = "macos"))]
+            if let Some(window) = app.get_webview_window("main") {
+                // Restore title text for non-macOS platforms (taskbar/alt-tab).
+                let _ = window.set_title("AIniMVP Recorder");
+            }
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             start_recording,
             stop_recording,
