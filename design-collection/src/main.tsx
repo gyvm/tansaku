@@ -15,6 +15,8 @@ import SoftGlassApp from './pages/soft-glass/App';
 import RetroGlassUI from './pages/retro-glass-ui';
 import VoiceNotesStepApp from './pages/voice-notes-step/App';
 import VoiceNotesDashApp from './pages/voice-notes-dash/App';
+import MeetingRecorderMacosApp from './pages/meeting-recorder-macos/App';
+import MeetingRecorderMacosSettings from './pages/meeting-recorder-macos/Settings';
 
 import './styles/globals.css';
 
@@ -103,6 +105,22 @@ function App() {
           element={
             <ProjectLayout>
               <VoiceNotesDashApp />
+            </ProjectLayout>
+          }
+        />
+        <Route
+          path="/meeting-recorder-macos"
+          element={
+            <ProjectLayout>
+              <MeetingRecorderMacosApp />
+            </ProjectLayout>
+          }
+        />
+        <Route
+          path="/meeting-recorder-macos/settings"
+          element={
+            <ProjectLayout>
+              <MeetingRecorderMacosSettings />
             </ProjectLayout>
           }
         />

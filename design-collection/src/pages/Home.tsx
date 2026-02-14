@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Layout, Settings, Zap, BookOpen, Palette, Cloud, FileAudio, LayoutDashboard } from 'lucide-react';
+import { ArrowRight, Layout, Settings, Zap, BookOpen, Palette, Cloud, FileAudio, LayoutDashboard, Mic } from 'lucide-react';
 
 interface ProjectCard {
   id: string;
@@ -91,6 +91,15 @@ const projects: ProjectCard[] = [
     path: '/voice-notes-dash',
     icon: <LayoutDashboard className="w-6 h-6" />,
     color: 'from-teal-600 to-cyan-700',
+    status: 'completed',
+  },
+  {
+    id: 'meeting-recorder-macos',
+    name: 'Meeting Recorder (macOS)',
+    description: 'Online MTG recording UI with dual-channel wave and storage panel.',
+    path: '/meeting-recorder-macos',
+    icon: <Mic className="w-6 h-6" />,
+    color: 'from-rose-500 to-orange-500',
     status: 'completed',
   },
 ];
