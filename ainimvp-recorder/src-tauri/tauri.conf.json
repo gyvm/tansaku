@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "",
+        "title": "AIniMVP Recorder",
         "width": 720,
         "height": 580,
         "resizable": true,
