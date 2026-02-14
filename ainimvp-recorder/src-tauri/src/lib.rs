@@ -151,9 +151,16 @@ pub fn run() {
         .setup(|app| {
             #[cfg(target_os = "macos")]
             if let Some(window) = app.get_webview_window("main") {
-                // Hide native title text while keeping traffic-light controls.
+                // Keep traffic lights but hide title text on macOS.
                 let _ = window.set_title("");
             }
+
+            #[cfg(not(target_os = "macos"))]
+            if let Some(window) = app.get_webview_window("main") {
+                // Restore title text for non-macOS platforms (taskbar/alt-tab).
+                let _ = window.set_title("AIniMVP Recorder");
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
