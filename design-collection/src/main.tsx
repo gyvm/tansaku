@@ -17,6 +17,7 @@ import VoiceNotesStepApp from './pages/voice-notes-step/App';
 import VoiceNotesDashApp from './pages/voice-notes-dash/App';
 import MeetingRecorderMacosApp from './pages/meeting-recorder-macos/App';
 import MeetingRecorderMacosSettings from './pages/meeting-recorder-macos/Settings';
+import RecordingButtonsApp from './pages/recording-buttons/App';
 
 import './styles/globals.css';
 
@@ -121,6 +122,15 @@ function App() {
           element={
             <ProjectLayout>
               <MeetingRecorderMacosSettings />
+            </ProjectLayout>
+          }
+        />
+
+        <Route
+          path="/recording-buttons"
+          element={
+            <ProjectLayout>
+              <RecordingButtonsApp />
             </ProjectLayout>
           }
         />

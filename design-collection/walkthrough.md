@@ -1,16 +1,26 @@
 # ウォークスルー
 
 ## 実施した変更の概要
-セッションカード内のレイアウトを見本に合わせて再編し、2チャンネル波形と中央停止ボタンを中心とした操作UIに変更しました。録音開始/停止/一時停止でステータス、タイマー、波形の動きが連動するようにしています。
-ボタンサイズや影、背景色を調整して、見本のようなポップな質感に寄せました。
+- 録音ボタンを1画面で比較できる新規ページを追加しました。
+- 合計25種類の録音ボタンを実装し、各ボタンで「開始前 ↔ 録音中」をクリックで切り替えできるようにしました。
+- Home 画面から新ページへ遷移できる導線と、Router の新規ルートを追加しました。
 
 ## 変更されたファイル
-- `src/pages/meeting-recorder-macos/App.tsx`
+- `src/pages/recording-buttons/App.tsx`
+  - 新規作成。25種類のボタンデザイン定義と、トグル動作するカードUIを実装。
+- `src/main.tsx`
+  - `/recording-buttons` ルートを追加。
+- `src/pages/Home.tsx`
+  - 「Recording Button Collection」カードを追加。
 - `implementation_plan.md`
-- `walkthrough.md`
+  - 本対応の実装計画を記述。
 
 ## 検証結果
-- 未実施（必要であれば `npm run dev` で確認してください）
+- `npm run build` が成功し、Vite ビルドが通過。
+- ブラウザで `/recording-buttons` を開き、以下を確認。
+  - 25カード表示
+  - 各カードの開始/停止トグル
+  - 状態に応じたラベル・色・アイコン・アニメーション変化
 
 ## スクリーンショット
-- なし
+- `browser:/tmp/codex_browser_invocations/2f7c2fb20ac5a3a9/artifacts/artifacts/recording-buttons-collection.png`
