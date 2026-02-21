@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Layout, Settings, Zap, BookOpen, Palette, Cloud, FileAudio, LayoutDashboard, Mic } from 'lucide-react';
+import { ArrowRight, Layout, Settings, Zap, BookOpen, Palette, Cloud, FileAudio, LayoutDashboard, Mic, Radio } from 'lucide-react';
 
 interface ProjectCard {
   id: string;
@@ -100,6 +100,15 @@ const projects: ProjectCard[] = [
     path: '/meeting-recorder-macos',
     icon: <Mic className="w-6 h-6" />,
     color: 'from-rose-500 to-orange-500',
+    status: 'completed',
+  },
+  {
+    id: 'recording-buttons',
+    name: 'Recording Button Collection',
+    description: 'A showcase of 25+ interactive recording button designs in various styles (Minimal, Neon, Skeuomorphic).',
+    path: '/recording-buttons',
+    icon: <Radio className="w-6 h-6" />,
+    color: 'from-red-500 to-pink-600',
     status: 'completed',
   },
 ];
