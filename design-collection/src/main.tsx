@@ -134,6 +134,15 @@ function App() {
           }
         />
 
+        <Route
+          path="/recording-buttons"
+          element={
+            <ProjectLayout>
+              <RecordingButtonsApp />
+            </ProjectLayout>
+          }
+        />
+
         {/* 404 Page */}
         <Route path="*" element={<NotFound />} />
       </Routes>
