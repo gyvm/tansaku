@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Layout, Settings, Zap, BookOpen, Palette, Cloud, FileAudio, LayoutDashboard, Mic, CircleDot } from 'lucide-react';
+import { ArrowRight, Layout, Settings, Zap, BookOpen, Palette, Cloud, FileAudio, LayoutDashboard, Mic, Disc3 } from 'lucide-react';
 
 interface ProjectCard {
   id: string;
@@ -102,14 +102,13 @@ const projects: ProjectCard[] = [
     color: 'from-rose-500 to-orange-500',
     status: 'completed',
   },
-
   {
     id: 'recording-buttons',
-    name: 'Recording Button Collection',
-    description: '25 clickable recording button ideas ranging from modern minimal to colorful animated styles.',
+    name: 'Recording Buttons',
+    description: 'A focused gallery of record button concepts across multiple visual styles.',
     path: '/recording-buttons',
-    icon: <CircleDot className="w-6 h-6" />,
-    color: 'from-red-500 to-pink-500',
+    icon: <Disc3 className="w-6 h-6" />,
+    color: 'from-red-500 to-fuchsia-600',
     status: 'completed',
   },
 ];

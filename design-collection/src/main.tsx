@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
@@ -133,16 +133,6 @@ function App() {
             </ProjectLayout>
           }
         />
-
-        <Route
-          path="/recording-buttons"
-          element={
-            <ProjectLayout>
-              <RecordingButtonsApp />
-            </ProjectLayout>
-          }
-        />
-
         {/* 404 Page */}
         <Route path="*" element={<NotFound />} />
       </Routes>
