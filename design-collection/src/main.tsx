@@ -125,6 +125,14 @@ function App() {
             </ProjectLayout>
           }
         />
+        <Route
+          path="/recording-buttons"
+          element={
+            <ProjectLayout>
+              <RecordingButtonsApp />
+            </ProjectLayout>
+          }
+        />
 
         <Route
           path="/recording-buttons"
