@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "git-plant"
+version = "0.1.0"
+description = "Visualize Git branch structure as a growing plant in your terminal."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+  {name = "Jules", email = "jules@example.com"}
+]
+dependencies = [
+    "GitPython>=3.1.0",
+    "rich>=13.0.0",
+    "textual>=0.40.0",
+    "click>=8.0.0",
+]
+
+[project.scripts]
+git-plant = "git_plant.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
