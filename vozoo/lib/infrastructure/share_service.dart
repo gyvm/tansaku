@@ -4,6 +4,8 @@ import '../../domain/interfaces/i_share_service.dart';
 class ShareService implements IShareService {
   @override
   Future<void> shareFile(String path, {String? text}) async {
-    await Share.shareXFiles([XFile(path)], text: text);
+    await SharePlus.instance.share(
+      ShareParams(files: [XFile(path)], text: text),
+    );
   }
 }

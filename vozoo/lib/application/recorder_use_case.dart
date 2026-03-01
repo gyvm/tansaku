@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../domain/entities/recorded_audio.dart';
+import 'providers.dart';
 
 enum RecorderStatus { idle, recording, processing }
 
@@ -30,39 +33,48 @@ class RecorderState {
   }
 }
 
-class RecorderNotifier extends StateNotifier<RecorderState> {
-  final IRecorderService _service;
+class RecorderNotifier extends Notifier<RecorderState> {
+  @override
+  RecorderState build() {
+    final service = ref.watch(recorderServiceProvider);
 
-  RecorderNotifier(this._service) : super(const RecorderState()) {
-    _service.durationStream.listen((d) {
+    final durationSub = service.durationStream.listen((d) {
       if (state.status == RecorderStatus.recording) {
         state = state.copyWith(duration: d);
       }
     });
-    _service.isRecordingStream.listen((isRecording) {
+    final isRecordingSub = service.isRecordingStream.listen((isRecording) {
       if (isRecording) {
         state = state.copyWith(status: RecorderStatus.recording);
       } else {
-        // If stopped externally or error
         if (state.status == RecorderStatus.recording) {
           state = state.copyWith(status: RecorderStatus.idle);
         }
       }
     });
+
+    ref.onDispose(() {
+      durationSub.cancel();
+      isRecordingSub.cancel();
+    });
+
+    return const RecorderState();
   }
 
   Future<void> startRecording() async {
+    final service = ref.read(recorderServiceProvider);
     try {
       state = state.copyWith(status: RecorderStatus.recording, error: null, duration: Duration.zero);
-      await _service.start();
+      await service.start();
     } catch (e) {
       state = state.copyWith(status: RecorderStatus.idle, error: e.toString());
     }
   }
 
   Future<void> stopRecording() async {
+    final service = ref.read(recorderServiceProvider);
     try {
-      final audio = await _service.stop();
+      final audio = await service.stop();
       state = state.copyWith(status: RecorderStatus.idle, lastRecording: audio);
     } catch (e) {
       state = state.copyWith(status: RecorderStatus.idle, error: e.toString());

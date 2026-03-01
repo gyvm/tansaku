@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:vozoo_dsp/vozoo_dsp.dart' as vozoo_dsp;
 
 void main() {
   runApp(const MyApp());
@@ -15,54 +12,47 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late int sumResult;
-  late Future<int> sumAsyncResult;
+  String resultText = 'Tap button to test DSP';
 
-  @override
-  void initState() {
-    super.initState();
-    sumResult = vozoo_dsp.sum(1, 2);
-    sumAsyncResult = vozoo_dsp.sumAsync(3, 4);
+  Future<void> _testProcessFile() async {
+    // This is just a placeholder example.
+    // In real usage, you'd provide actual WAV file paths.
+    setState(() {
+      resultText = 'processFile requires actual WAV file paths.\n'
+          'See the main Vozoo app for full usage.';
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    const textStyle = TextStyle(fontSize: 25);
+    const textStyle = TextStyle(fontSize: 20);
     const spacerSmall = SizedBox(height: 10);
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Native Packages'),
+          title: const Text('Vozoo DSP Example'),
         ),
         body: SingleChildScrollView(
           child: Container(
-            padding: const .all(10),
+            padding: const EdgeInsets.all(10),
             child: Column(
               children: [
                 const Text(
-                  'This calls a native function through FFI that is shipped as source in the package. '
-                  'The native code is built as part of the Flutter Runner build.',
+                  'This plugin provides FFI bindings to the Vozoo DSP C++ library '
+                  'for audio processing with voice effects.',
                   style: textStyle,
-                  textAlign: .center,
+                  textAlign: TextAlign.center,
                 ),
                 spacerSmall,
                 Text(
-                  'sum(1, 2) = $sumResult',
+                  resultText,
                   style: textStyle,
-                  textAlign: .center,
+                  textAlign: TextAlign.center,
                 ),
                 spacerSmall,
-                FutureBuilder<int>(
-                  future: sumAsyncResult,
-                  builder: (BuildContext context, AsyncSnapshot<int> value) {
-                    final displayValue =
-                        (value.hasData) ? value.data : 'loading';
-                    return Text(
-                      'await sumAsync(3, 4) = $displayValue',
-                      style: textStyle,
-                      textAlign: .center,
-                    );
-                  },
+                ElevatedButton(
+                  onPressed: _testProcessFile,
+                  child: const Text('Test DSP'),
                 ),
               ],
             ),

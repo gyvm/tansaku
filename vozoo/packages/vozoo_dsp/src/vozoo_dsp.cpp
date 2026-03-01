@@ -162,18 +162,12 @@ struct Biquad {
         b0 /= a0; b1 /= a0; b2 /= a0; a1 /= a0; a2 /= a0;
     }
 
-    float process(float in) {
-        float out = b0 * in + b1 * z1 + b2 * z2 - a1 * out - a2 * out; // Error in formula usage here, let's fix
-        // Standard Direct Form I:
-        // y[n] = b0*x[n] + b1*x[n-1] + b2*x[n-2] - a1*y[n-1] - a2*y[n-2]
-        // But implementation usually uses intermediate vars or updates state carefully.
-
-        // Let's use Direct Form II Transposed for stability or just fix standard DF1.
-        // Re-implementing DF1 correctly:
-        float res = b0 * in + b1 * z1 + b2 * z2 - a1 * this->z1_out - a2 * this->z2_out;
-        // Wait, standard state variables usually hold x[n-1]... or y[n-1]...
-        // Let's stick to a simple DF1 implementation:
-        return 0; // Placeholder to rewrite below
+    float process(float x) {
+        // Direct Form II Transposed
+        float y = b0 * x + z1;
+        z1 = b1 * x - a1 * y + z2;
+        z2 = b2 * x - a2 * y;
+        return y;
     }
 };
 

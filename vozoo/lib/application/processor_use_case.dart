@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/entities/recorded_audio.dart';
-import '../../domain/entities/voice_preset.dart';
-import '../../domain/interfaces/i_audio_processor_service.dart';
+import '../domain/entities/recorded_audio.dart';
+import '../domain/entities/voice_preset.dart';
+import 'providers.dart';
 
 class ProcessorState {
   final bool isProcessing;
@@ -31,21 +32,29 @@ class ProcessorState {
   }
 }
 
-class ProcessorNotifier extends StateNotifier<ProcessorState> {
-  final IAudioProcessorService _service;
+class ProcessorNotifier extends Notifier<ProcessorState> {
+  @override
+  ProcessorState build() {
+    final service = ref.watch(processorServiceProvider);
 
-  ProcessorNotifier(this._service) : super(const ProcessorState()) {
-    _service.progressStream.listen((p) {
+    final progressSub = service.progressStream.listen((p) {
       if (state.isProcessing) {
         state = state.copyWith(progress: p);
       }
     });
+
+    ref.onDispose(() {
+      progressSub.cancel();
+    });
+
+    return const ProcessorState();
   }
 
   Future<void> process(RecordedAudio input, VoicePreset preset) async {
+    final service = ref.read(processorServiceProvider);
     try {
       state = state.copyWith(isProcessing: true, error: null, progress: 0.0);
-      final result = await _service.process(input, preset);
+      final result = await service.process(input, preset);
       state = state.copyWith(isProcessing: false, processedAudio: result, progress: 1.0);
     } catch (e) {
       state = state.copyWith(isProcessing: false, error: e.toString());

@@ -1,15 +1,33 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class RecordedAudio {
+  final String path;
+  final Duration duration;
 
-part 'recorded_audio.freezed.dart';
-part 'recorded_audio.g.dart';
+  const RecordedAudio({
+    required this.path,
+    required this.duration,
+  });
 
-@freezed
-class RecordedAudio with _$RecordedAudio {
-  const factory RecordedAudio({
-    required String path,
-    required Duration duration,
-  }) = _RecordedAudio;
+  RecordedAudio copyWith({
+    String? path,
+    Duration? duration,
+  }) {
+    return RecordedAudio(
+      path: path ?? this.path,
+      duration: duration ?? this.duration,
+    );
+  }
 
-  factory RecordedAudio.fromJson(Map<String, dynamic> json) =>
-      _$RecordedAudioFromJson(json);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RecordedAudio &&
+          runtimeType == other.runtimeType &&
+          path == other.path &&
+          duration == other.duration;
+
+  @override
+  int get hashCode => path.hashCode ^ duration.hashCode;
+
+  @override
+  String toString() => 'RecordedAudio(path: $path, duration: $duration)';
 }

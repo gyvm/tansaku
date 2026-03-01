@@ -29,14 +29,14 @@ final shareServiceProvider = Provider<IShareService>((ref) {
 });
 
 // Notifiers
-final recorderStateProvider = StateNotifierProvider<RecorderNotifier, RecorderState>((ref) {
-  return RecorderNotifier(ref.watch(recorderServiceProvider));
-});
+final recorderStateProvider = NotifierProvider<RecorderNotifier, RecorderState>(
+  RecorderNotifier.new,
+);
 
-final processorStateProvider = StateNotifierProvider<ProcessorNotifier, ProcessorState>((ref) {
-  return ProcessorNotifier(ref.watch(processorServiceProvider));
-});
+final processorStateProvider = NotifierProvider<ProcessorNotifier, ProcessorState>(
+  ProcessorNotifier.new,
+);
 
-final playerStateProvider = StateNotifierProvider<PlayerNotifier, PlayerState>((ref) {
-  return PlayerNotifier(ref.watch(playerServiceProvider));
-});
+final playerStateProvider = NotifierProvider<PlayerNotifier, PlayerState>(
+  PlayerNotifier.new,
+);

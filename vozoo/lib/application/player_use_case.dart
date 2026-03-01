@@ -1,5 +1,6 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/interfaces/i_audio_player_service.dart';
+import 'providers.dart';
 
 class PlayerState {
   final bool isPlaying;
@@ -29,38 +30,51 @@ class PlayerState {
   }
 }
 
-class PlayerNotifier extends StateNotifier<PlayerState> {
-  final IAudioPlayerService _service;
+class PlayerNotifier extends Notifier<PlayerState> {
+  @override
+  PlayerState build() {
+    final service = ref.watch(playerServiceProvider);
 
-  PlayerNotifier(this._service) : super(const PlayerState()) {
-    _service.isPlayingStream.listen((p) {
+    final isPlayingSub = service.isPlayingStream.listen((p) {
       state = state.copyWith(isPlaying: p);
     });
-    _service.positionStream.listen((p) {
+    final positionSub = service.positionStream.listen((p) {
       state = state.copyWith(position: p);
     });
-    _service.durationStream.listen((d) {
+    final durationSub = service.durationStream.listen((d) {
       state = state.copyWith(duration: d);
     });
+
+    ref.onDispose(() {
+      isPlayingSub.cancel();
+      positionSub.cancel();
+      durationSub.cancel();
+    });
+
+    return const PlayerState();
   }
 
   Future<void> play(String path) async {
+    final service = ref.read(playerServiceProvider);
     try {
-      await _service.play(path);
+      await service.play(path);
     } catch (e) {
       state = state.copyWith(error: e.toString());
     }
   }
 
   Future<void> stop() async {
-    await _service.stop();
+    final service = ref.read(playerServiceProvider);
+    await service.stop();
   }
 
   Future<void> pause() async {
-    await _service.pause();
+    final service = ref.read(playerServiceProvider);
+    await service.pause();
   }
 
   Future<void> resume() async {
-    await _service.resume();
+    final service = ref.read(playerServiceProvider);
+    await service.resume();
   }
 }

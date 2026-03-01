@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/entities/recorded_audio.dart';
 import '../application/providers.dart';
-import '../application/player_use_case.dart';
 
 class ResultScreen extends ConsumerStatefulWidget {
   final RecordedAudio audio;
