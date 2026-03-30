@@ -1,0 +1,21 @@
+fn main() {
+    cc::Build::new()
+        .cpp(true)
+        .include("world-sys/src")
+        .files([
+            "world-sys/src/cheaptrick.cpp",
+            "world-sys/src/codec.cpp",
+            "world-sys/src/common.cpp",
+            "world-sys/src/d4c.cpp",
+            "world-sys/src/dio.cpp",
+            "world-sys/src/fft.cpp",
+            "world-sys/src/harvest.cpp",
+            "world-sys/src/matlabfunctions.cpp",
+            "world-sys/src/stonemask.cpp",
+            "world-sys/src/synthesis.cpp",
+            "world-sys/src/synthesisrealtime.cpp",
+        ])
+        .flag_if_supported("-std=c++17")
+        .opt_level(2)
+        .compile("world");
+}

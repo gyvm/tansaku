@@ -1,1 +1,11 @@
-pub mod pitch_shift;
+pub mod chain;
+pub mod distortion;
+pub mod filter;
+pub mod jitter_shimmer;
+pub mod noise;
+pub mod resonance;
+pub mod ring_mod;
+pub mod spectral_tilt;
+pub mod subharmonics;
+pub mod tremolo;
+pub mod vibrato;

@@ -1,8 +1,12 @@
 pub mod effects;
+pub mod pipeline;
 pub mod preset;
+mod world;
+mod world_ffi;
 
 use std::path::Path;
 
+pub use pipeline::VoiceParams;
 pub use preset::AnimalPreset;
 
 pub struct AudioData {
@@ -79,7 +83,7 @@ pub fn write_wav(path: &Path, samples: &[f32], sample_rate: u32) -> Result<(), S
     Ok(())
 }
 
-/// Apply pitch shift and return processed samples.
-pub fn process(samples: &[f32], sample_rate: u32, semitones: f32) -> Vec<f32> {
-    effects::pitch_shift::shift(samples, sample_rate, semitones)
+/// Process audio with full voice parameters (World vocoder + effects).
+pub fn process_with_params(samples: &[f32], sample_rate: u32, params: &VoiceParams) -> Vec<f32> {
+    pipeline::process_voice(samples, sample_rate, params)
 }

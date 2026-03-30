@@ -1,0 +1,3 @@
+[submodule "animal-voice-changer/world-sys"]
+	path = animal-voice-changer/world-sys
+	url = https://github.com/mmorise/World.git

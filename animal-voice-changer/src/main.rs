@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use animal_voice_changer::{process, read_wav, write_wav, AnimalPreset};
+use animal_voice_changer::{process_with_params, read_wav, write_wav, AnimalPreset, VoiceParams};
 use clap::Parser;
 
 #[derive(Parser)]
@@ -19,20 +19,43 @@ struct Cli {
     #[arg(short, long, value_enum)]
     preset: Option<AnimalPreset>,
 
-    /// Pitch shift in semitones (overrides preset)
+    /// Pitch shift in semitones (used when no preset given)
     #[arg(short, long, allow_hyphen_values = true)]
-    semitones: Option<f32>,
+    semitones: Option<f64>,
+
+    /// Formant shift ratio (default: 1.0, <1.0 = smaller animal, >1.0 = larger)
+    #[arg(short, long)]
+    formant: Option<f64>,
+
+    /// Breathiness amount (0.0-1.0)
+    #[arg(short, long)]
+    breathiness: Option<f64>,
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    let semitones = match (cli.semitones, cli.preset) {
-        (Some(s), _) => s,
-        (None, Some(p)) => {
-            eprintln!("Using preset: {}", p.label());
-            p.semitones()
+    let params = match (cli.preset, cli.semitones) {
+        (Some(preset), _) => {
+            let mut params = preset.voice_params();
+            // Allow overriding individual parameters
+            if let Some(f) = cli.formant {
+                params.formant_shift_ratio = f;
+            }
+            if let Some(b) = cli.breathiness {
+                params.breathiness = b;
+            }
+            if let Some(s) = cli.semitones {
+                params.pitch_shift_semitones = s;
+            }
+            eprintln!("Using preset: {}", preset.label());
+            params
         }
+        (None, Some(s)) => VoiceParams::simple(
+            s,
+            cli.formant.unwrap_or(1.0),
+            cli.breathiness.unwrap_or(0.0),
+        ),
         (None, None) => {
             eprintln!("Error: specify --preset or --semitones");
             std::process::exit(1);
@@ -55,8 +78,7 @@ fn main() {
         audio.bits_per_sample
     );
 
-    eprintln!("Shifting pitch by {semitones:+.1} semitones...");
-    let shifted = process(&audio.samples, audio.sample_rate, semitones);
+    let shifted = process_with_params(&audio.samples, audio.sample_rate, &params);
 
     eprintln!("Writing: {}", cli.output.display());
     if let Err(e) = write_wav(&cli.output, &shifted, audio.sample_rate) {
