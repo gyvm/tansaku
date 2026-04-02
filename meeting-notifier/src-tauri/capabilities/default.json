@@ -1,0 +1,18 @@
+{
+  "identifier": "default",
+  "description": "Default capabilities for Meeting Notifier",
+  "windows": ["main", "notification"],
+  "permissions": [
+    "core:default",
+    "core:window:default",
+    "core:window:allow-create",
+    "core:window:allow-close",
+    "core:window:allow-set-focus",
+    "shell:allow-open",
+    "notification:default",
+    "notification:allow-notify",
+    "notification:allow-request-permission",
+    "store:default",
+    "autostart:default"
+  ]
+}
