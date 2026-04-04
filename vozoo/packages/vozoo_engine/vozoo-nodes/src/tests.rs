@@ -23,8 +23,8 @@ fn test_gorilla_preset() {
     assert_eq!(result, 0);
 
     let processed = read_wav(output).unwrap();
-    // Pitch down 0.75x means output is longer
-    assert!(processed.samples.len() > original.samples.len());
+    // Phase vocoder preserves duration
+    assert_eq!(processed.samples.len(), original.samples.len());
     assert_eq!(processed.sample_rate(), 48000);
 
     std::fs::remove_file(input).ok();
@@ -41,8 +41,8 @@ fn test_cat_preset() {
     assert_eq!(result, 0);
 
     let processed = read_wav(output).unwrap();
-    // Pitch up 1.4x means output is shorter
-    assert!(processed.samples.len() < original.samples.len());
+    // Phase vocoder preserves duration
+    assert_eq!(processed.samples.len(), original.samples.len());
 
     std::fs::remove_file(input).ok();
     std::fs::remove_file(output).ok();

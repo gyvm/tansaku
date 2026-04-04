@@ -1129,6 +1129,7 @@ name = "vozoo-nodes"
 version = "0.1.0"
 dependencies = [
  "nnnoiseless",
+ "rustfft",
  "serde",
  "serde_json",
  "vozoo-core",

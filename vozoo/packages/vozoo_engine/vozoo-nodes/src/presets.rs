@@ -21,13 +21,13 @@ pub fn build_preset_chain(preset_id: i32) -> LinearChain {
     match preset_id {
         0 => {
             // Gorilla: pitch down 0.75x + LPF 800Hz + volume boost 1.2x
-            chain.add(Box::new(PitchShift::new(0.75)));
+            chain.add(Box::new(PitchShift::from_factor(0.75)));
             chain.add(Box::new(BiquadFilter::new(FilterType::LowPass, 800.0, 0.707)));
             chain.add(Box::new(Gain::new(1.2)));
         }
         1 => {
             // Cat: pitch up 1.4x + HPF 500Hz
-            chain.add(Box::new(PitchShift::new(1.4)));
+            chain.add(Box::new(PitchShift::from_factor(1.4)));
             chain.add(Box::new(BiquadFilter::new(FilterType::HighPass, 500.0, 0.707)));
         }
         2 => {
