@@ -7,6 +7,7 @@ pub mod deesser;
 pub mod fft_utils;
 pub mod formant_shift;
 pub mod gain;
+pub mod hrtf;
 pub mod limiter;
 pub mod loudness_norm;
 pub mod noise_reduction;

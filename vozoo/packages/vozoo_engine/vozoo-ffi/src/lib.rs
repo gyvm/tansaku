@@ -54,6 +54,54 @@ pub extern "C" fn process_file_with_chain(
     vozoo_nodes::process_file_with_chain(input_str, output_str, chain_str)
 }
 
+/// Process a WAV file using a DAG graph definition (JSON).
+/// Returns 0 on success, -1 on read error, -2 on write error, -3 on parse error.
+#[no_mangle]
+pub extern "C" fn process_file_with_graph(
+    input_path: *const c_char,
+    output_path: *const c_char,
+    graph_json: *const c_char,
+) -> c_int {
+    let input_str = match unsafe { cstr_to_str(input_path) } {
+        Some(s) => s,
+        None => return -1,
+    };
+    let output_str = match unsafe { cstr_to_str(output_path) } {
+        Some(s) => s,
+        None => return -2,
+    };
+    let graph_str = match unsafe { cstr_to_str(graph_json) } {
+        Some(s) => s,
+        None => return -3,
+    };
+    vozoo_nodes::process_file_with_graph(input_str, output_str, graph_str)
+}
+
+/// Get built-in graph preset definitions as JSON.
+/// Caller must free the returned string with `free_string()`.
+#[no_mangle]
+pub extern "C" fn get_graph_presets() -> *mut c_char {
+    let presets = vozoo_nodes::preset_graph_defs();
+    let json = serde_json::to_string(&presets).unwrap_or_else(|_| "[]".into());
+    string_to_c(json)
+}
+
+/// Set the engine's effect graph from a DAG graph definition (JSON).
+/// Returns 0 on success, -1 null handle, -2 invalid UTF-8, -3 parse error.
+#[no_mangle]
+pub extern "C" fn engine_set_graph(handle: EngineHandle, graph_json: *const c_char) -> c_int {
+    if handle.is_null() { return -1; }
+    let graph_str = match unsafe { cstr_to_str(graph_json) } {
+        Some(s) => s,
+        None => return -2,
+    };
+    let engine = unsafe { &*handle };
+    match engine.set_graph(graph_str) {
+        Ok(()) => 0,
+        Err(_) => -3,
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn get_available_nodes() -> *mut c_char {
     let nodes = vozoo_nodes::available_nodes();

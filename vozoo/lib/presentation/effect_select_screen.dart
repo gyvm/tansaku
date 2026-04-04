@@ -5,6 +5,7 @@ import '../domain/entities/voice_preset.dart';
 import '../application/providers.dart';
 import '../application/processor_use_case.dart';
 import 'chain_editor_screen.dart';
+import 'graph_editor_screen.dart';
 import 'result_screen.dart';
 
 class EffectSelectScreen extends ConsumerWidget {
@@ -76,7 +77,7 @@ class EffectSelectScreen extends ConsumerWidget {
                 ),
               ),
               Card(
-                margin: const EdgeInsets.only(bottom: 16),
+                margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
                   leading: const CircleAvatar(
                     backgroundColor: Colors.deepPurple,
@@ -92,6 +93,39 @@ class EffectSelectScreen extends ConsumerWidget {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => ChainEditorScreen(audio: audio),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Graph editor section
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'Graph Editor',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.teal,
+                    child: Icon(Icons.account_tree, color: Colors.white),
+                  ),
+                  title: const Text(
+                    'Visual Graph Editor',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: const Text('DAG routing with parallel effects & 3D audio'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => GraphEditorScreen(audio: audio),
                       ),
                     );
                   },

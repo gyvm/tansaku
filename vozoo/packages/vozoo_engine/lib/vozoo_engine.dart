@@ -15,6 +15,11 @@ typedef _ProcessFileWithChainNative = Int32 Function(
 typedef _ProcessFileWithChainDart = int Function(
     Pointer<Utf8> input, Pointer<Utf8> output, Pointer<Utf8> chainJson);
 
+typedef _ProcessFileWithGraphNative = Int32 Function(
+    Pointer<Utf8> input, Pointer<Utf8> output, Pointer<Utf8> graphJson);
+typedef _ProcessFileWithGraphDart = int Function(
+    Pointer<Utf8> input, Pointer<Utf8> output, Pointer<Utf8> graphJson);
+
 typedef _GetStringNative = Pointer<Utf8> Function();
 typedef _GetStringDart = Pointer<Utf8> Function();
 
@@ -64,12 +69,20 @@ final _ProcessFileWithChainDart _processFileWithChain = _nativeLib
     .lookup<NativeFunction<_ProcessFileWithChainNative>>('process_file_with_chain')
     .asFunction();
 
+final _ProcessFileWithGraphDart _processFileWithGraph = _nativeLib
+    .lookup<NativeFunction<_ProcessFileWithGraphNative>>('process_file_with_graph')
+    .asFunction();
+
 final _GetStringDart _getAvailableNodes = _nativeLib
     .lookup<NativeFunction<_GetStringNative>>('get_available_nodes')
     .asFunction();
 
 final _GetStringDart _getPresets = _nativeLib
     .lookup<NativeFunction<_GetStringNative>>('get_presets')
+    .asFunction();
+
+final _GetStringDart _getGraphPresets = _nativeLib
+    .lookup<NativeFunction<_GetStringNative>>('get_graph_presets')
     .asFunction();
 
 final _FreeStringDart _freeString = _nativeLib
@@ -86,6 +99,10 @@ final _EngineDestroyDart _engineDestroy = _nativeLib
 
 final _EngineSetChainDart _engineSetChain = _nativeLib
     .lookup<NativeFunction<_EngineSetChainNative>>('engine_set_chain')
+    .asFunction();
+
+final _EngineSetChainDart _engineSetGraph = _nativeLib
+    .lookup<NativeFunction<_EngineSetChainNative>>('engine_set_graph')
     .asFunction();
 
 final _EngineStartDart _engineStartRealtime = _nativeLib
@@ -155,6 +172,32 @@ Future<int> processFileWithChain(String inputPath, String outputPath, String cha
   return Isolate.run(() => _processFileWithChainSync([inputPath, outputPath, chainJson]));
 }
 
+int _processFileWithGraphSync(List<String> args) {
+  final input = args[0].toNativeUtf8();
+  final output = args[1].toNativeUtf8();
+  final graph = args[2].toNativeUtf8();
+  try {
+    return _processFileWithGraph(input, output, graph);
+  } finally {
+    malloc.free(input);
+    malloc.free(output);
+    malloc.free(graph);
+  }
+}
+
+/// Process a WAV file with a JSON graph definition (DAG routing).
+/// Runs on a background isolate to avoid blocking the UI thread.
+Future<int> processFileWithGraph(String inputPath, String outputPath, String graphJson) {
+  return Isolate.run(() => _processFileWithGraphSync([inputPath, outputPath, graphJson]));
+}
+
+String getGraphPresets() {
+  final ptr = _getGraphPresets();
+  final json = ptr.toDartString();
+  _freeString(ptr);
+  return json;
+}
+
 String getAvailableNodes() {
   final ptr = _getAvailableNodes();
   final json = ptr.toDartString();
@@ -190,6 +233,16 @@ class VozooEngine {
     final json = chainJson.toNativeUtf8();
     try {
       return _engineSetChain(_handle, json);
+    } finally {
+      malloc.free(json);
+    }
+  }
+
+  int setGraph(String graphJson) {
+    _ensureNotDisposed();
+    final json = graphJson.toNativeUtf8();
+    try {
+      return _engineSetGraph(_handle, json);
     } finally {
       malloc.free(json);
     }

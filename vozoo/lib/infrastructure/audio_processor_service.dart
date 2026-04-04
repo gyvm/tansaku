@@ -4,6 +4,7 @@ import 'package:vozoo_engine/vozoo_engine.dart' as engine;
 import 'package:vozoo/domain/entities/recorded_audio.dart';
 import 'package:vozoo/domain/entities/voice_preset.dart';
 import 'package:vozoo/domain/entities/effect_chain.dart';
+import 'package:vozoo/domain/entities/effect_graph.dart';
 import 'package:vozoo/domain/interfaces/i_audio_processor_service.dart';
 import 'package:path/path.dart' as p;
 
@@ -83,6 +84,35 @@ class AudioProcessorService implements IAudioProcessorService {
     return RecordedAudio(
       path: outputPath,
       duration: newDuration,
+    );
+  }
+
+  @override
+  Future<RecordedAudio> processWithGraph(RecordedAudio input, EffectGraph graph) async {
+    final outputPath = _getOutputPath(input.path, graph.name.toLowerCase().replaceAll(' ', '_'));
+
+    final outputFile = File(outputPath);
+    if (await outputFile.exists()) {
+      await outputFile.delete();
+    }
+
+    _progressController.add(0.1);
+
+    final graphJson = graph.toJson();
+
+    _progressController.add(0.3);
+
+    final result = await engine.processFileWithGraph(input.path, outputPath, graphJson);
+    if (result != 0) {
+      final errors = {-1: 'Read error', -2: 'Write error', -3: 'Invalid graph definition'};
+      throw Exception('DSP Processing failed: ${errors[result] ?? 'code $result'}');
+    }
+
+    _progressController.add(1.0);
+
+    return RecordedAudio(
+      path: outputPath,
+      duration: input.duration,
     );
   }
 

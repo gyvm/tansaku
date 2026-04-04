@@ -8,6 +8,30 @@ use cpal::{SampleFormat, Stream};
 use vozoo_core::{AudioBuffer, SpscRingBuffer};
 use vozoo_nodes::chain::LinearChain;
 use vozoo_nodes::chain_def::ChainDef;
+use vozoo_nodes::graph::AudioGraph;
+use vozoo_nodes::graph_def::GraphDef;
+
+/// Unified processing pipeline: either a linear chain or a DAG graph.
+enum Pipeline {
+    Chain(LinearChain),
+    Graph(AudioGraph),
+}
+
+impl Pipeline {
+    fn process(&mut self, buffer: &mut AudioBuffer) {
+        match self {
+            Pipeline::Chain(chain) => chain.process(buffer),
+            Pipeline::Graph(graph) => graph.process(buffer),
+        }
+    }
+
+    fn reset(&mut self) {
+        match self {
+            Pipeline::Chain(chain) => chain.reset(),
+            Pipeline::Graph(graph) => graph.reset(),
+        }
+    }
+}
 
 /// Real-time audio engine: mic input → effect chain → speaker output.
 ///
@@ -18,7 +42,7 @@ use vozoo_nodes::chain_def::ChainDef;
 /// - Writer thread: drains `record_ring` to WAV file
 /// - UI thread: calls `set_chain()`, `start_recording()`, `stop_recording()`
 pub struct RealtimeEngine {
-    chain: Arc<Mutex<LinearChain>>,
+    pipeline: Arc<Mutex<Pipeline>>,
     input_ring: Arc<SpscRingBuffer>,
     record_ring: Arc<SpscRingBuffer>,
     is_running: Arc<AtomicBool>,
@@ -37,7 +61,7 @@ pub struct RealtimeEngine {
 impl RealtimeEngine {
     pub fn new() -> Self {
         Self {
-            chain: Arc::new(Mutex::new(LinearChain::new())),
+            pipeline: Arc::new(Mutex::new(Pipeline::Chain(LinearChain::new()))),
             input_ring: SpscRingBuffer::new(48000 * 2),
             record_ring: SpscRingBuffer::new(48000 * 60),
             is_running: Arc::new(AtomicBool::new(false)),
@@ -56,8 +80,17 @@ impl RealtimeEngine {
         let chain_def = ChainDef::from_json(chain_json)
             .map_err(|e| format!("Invalid chain JSON: {e}"))?;
         let new_chain = chain_def.build()?;
-        let mut chain = self.chain.lock().map_err(|e| format!("Lock error: {e}"))?;
-        *chain = new_chain;
+        let mut pipeline = self.pipeline.lock().map_err(|e| format!("Lock error: {e}"))?;
+        *pipeline = Pipeline::Chain(new_chain);
+        Ok(())
+    }
+
+    pub fn set_graph(&self, graph_json: &str) -> Result<(), String> {
+        let graph_def = GraphDef::from_json(graph_json)
+            .map_err(|e| format!("Invalid graph JSON: {e}"))?;
+        let new_graph = graph_def.build()?;
+        let mut pipeline = self.pipeline.lock().map_err(|e| format!("Lock error: {e}"))?;
+        *pipeline = Pipeline::Graph(new_graph);
         Ok(())
     }
 
@@ -156,8 +189,8 @@ impl RealtimeEngine {
             format => return Err(format!("Unsupported input format: {format:?}")),
         };
 
-        // Output stream: input_ring → chain → speaker (+ record_ring)
-        let chain = Arc::clone(&self.chain);
+        // Output stream: input_ring → pipeline → speaker (+ record_ring)
+        let chain = Arc::clone(&self.pipeline);
         let input_ring_out = Arc::clone(&self.input_ring);
         let record_ring = Arc::clone(&self.record_ring);
         let is_running_out = Arc::clone(&self.is_running);

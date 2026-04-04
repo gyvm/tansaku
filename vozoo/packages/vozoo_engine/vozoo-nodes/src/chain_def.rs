@@ -13,6 +13,7 @@ use crate::effects::compressor::Compressor;
 use crate::effects::convolution_reverb::ConvolutionReverb;
 use crate::effects::deesser::DeEsser;
 use crate::effects::formant_shift::FormantShift;
+use crate::effects::hrtf::Hrtf;
 use crate::effects::pitch_shift::PitchShift;
 use crate::effects::pitch_shift_resample::PitchShiftResample;
 use crate::effects::reverb::Reverb;
@@ -81,6 +82,11 @@ fn get_f32(params: &serde_json::Value, key: &str, default: f32) -> f32 {
     params.get(key).and_then(|v| v.as_f64()).map(|v| v as f32).unwrap_or(default)
 }
 
+/// Build an AudioNode from a NodeDef. Public for use by graph_def.
+pub fn build_node_public(def: &NodeDef) -> Option<Box<dyn vozoo_core::AudioNode>> {
+    build_node(def)
+}
+
 fn build_node(def: &NodeDef) -> Option<Box<dyn vozoo_core::AudioNode>> {
     let p = &def.params;
     match def.node_type.as_str() {
@@ -143,6 +149,12 @@ fn build_node(def: &NodeDef) -> Option<Box<dyn vozoo_core::AudioNode>> {
             Some(Box::new(Chorus::new(delay_ms, depth_ms, rate_hz, mix)))
         }
         "reverb" => Some(Box::new(Reverb::default_comb())),
+        "hrtf" => {
+            let azimuth = get_f32(p, "azimuth", 0.0);
+            let elevation = get_f32(p, "elevation", 0.0);
+            let distance = get_f32(p, "distance", 1.0);
+            Some(Box::new(Hrtf::new(azimuth, elevation, distance)))
+        }
         "convolution_reverb" => {
             let room_size = get_f32(p, "room_size", 0.5);
             let damping = get_f32(p, "damping", 0.5);
@@ -273,6 +285,17 @@ pub fn available_nodes() -> Vec<NodeInfo> {
                 ParamInfo { key: "room_size".into(), name: "Room Size".into(), min: 0.1, max: 2.0, default: 0.5 },
                 ParamInfo { key: "damping".into(), name: "Damping".into(), min: 0.0, max: 1.0, default: 0.5 },
                 ParamInfo { key: "dry_wet".into(), name: "Dry/Wet Mix".into(), min: 0.0, max: 1.0, default: 0.3 },
+            ],
+        },
+
+        // Spatial
+        NodeInfo {
+            node_type: "hrtf".into(), name: "HRTF 3D Audio".into(),
+            category: "Spatial".into(),
+            params: vec![
+                ParamInfo { key: "azimuth".into(), name: "Azimuth (deg)".into(), min: -180.0, max: 180.0, default: 0.0 },
+                ParamInfo { key: "elevation".into(), name: "Elevation (deg)".into(), min: -90.0, max: 90.0, default: 0.0 },
+                ParamInfo { key: "distance".into(), name: "Distance".into(), min: 0.1, max: 10.0, default: 1.0 },
             ],
         },
 
