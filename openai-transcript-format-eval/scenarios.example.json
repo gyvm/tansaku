@@ -1,0 +1,75 @@
+[
+  {
+    "id": "07",
+    "title": "Whisper raw text + gpt-4o-mini zero-shot formatting",
+    "model": "gpt-4o-mini",
+    "source_type": "whisper_raw",
+    "prompt_strategy": "zero-shot",
+    "input_file": "samples/meeting_30min_whisper_raw.txt",
+    "audio_length_minutes": 30,
+    "notes": "Baseline for filler removal and basic cleanup quality.",
+    "input_price_per_1m_usd": 0.15,
+    "output_price_per_1m_usd": 0.60
+  },
+  {
+    "id": "08",
+    "title": "Whisper raw text + gpt-4o-mini few-shot formatting",
+    "model": "gpt-4o-mini",
+    "source_type": "whisper_raw",
+    "prompt_strategy": "few-shot",
+    "input_file": "samples/meeting_30min_whisper_raw.txt",
+    "audio_length_minutes": 30,
+    "notes": "Measures quality lift from one worked example.",
+    "input_price_per_1m_usd": 0.15,
+    "output_price_per_1m_usd": 0.60
+  },
+  {
+    "id": "09",
+    "title": "Whisper raw text + gpt-4o zero-shot formatting",
+    "model": "gpt-4o",
+    "source_type": "whisper_raw",
+    "prompt_strategy": "zero-shot",
+    "input_file": "samples/meeting_30min_whisper_raw.txt",
+    "audio_length_minutes": 30,
+    "notes": "Compares gpt-4o-mini and gpt-4o formatting quality.",
+    "input_price_per_1m_usd": 2.50,
+    "output_price_per_1m_usd": 10.00
+  },
+  {
+    "id": "10",
+    "title": "Whisper raw text + gpt-4o-mini speaker-label prompt",
+    "model": "gpt-4o-mini",
+    "source_type": "whisper_raw",
+    "prompt_strategy": "speaker-labels",
+    "input_file": "samples/meeting_30min_whisper_raw.txt",
+    "audio_length_minutes": 30,
+    "expected_speakers": 4,
+    "notes": "Measures whether prompting can recover speaker labels.",
+    "input_price_per_1m_usd": 0.15,
+    "output_price_per_1m_usd": 0.60
+  },
+  {
+    "id": "11",
+    "title": "Zoom transcript paste + gpt-4o-mini zero-shot formatting",
+    "model": "gpt-4o-mini",
+    "source_type": "zoom_transcript",
+    "prompt_strategy": "zero-shot",
+    "input_file": "samples/meeting_30min_zoom_transcript.txt",
+    "audio_length_minutes": 30,
+    "notes": "Checks timestamp stripping and preservation of named speakers.",
+    "input_price_per_1m_usd": 0.15,
+    "output_price_per_1m_usd": 0.60
+  },
+  {
+    "id": "12",
+    "title": "Google Meet transcript paste + gpt-4o-mini zero-shot formatting",
+    "model": "gpt-4o-mini",
+    "source_type": "google_meet_transcript",
+    "prompt_strategy": "zero-shot",
+    "input_file": "samples/meeting_30min_google_meet_transcript.txt",
+    "audio_length_minutes": 30,
+    "notes": "Checks timestamp and line noise removal from Google Meet output.",
+    "input_price_per_1m_usd": 0.15,
+    "output_price_per_1m_usd": 0.60
+  }
+]

@@ -1,0 +1,73 @@
+[
+  {
+    "id": "p1-whisper-ja-clear",
+    "title": "1. Whisper API (whisper-1) / クリア音声・1人 / 日本語",
+    "model": "whisper-1",
+    "audio": "samples/ja_clear_single_speaker.wav",
+    "language": "ja",
+    "notes": "Whisperのベースライン精度確認",
+    "subjective_quality_score": 0,
+    "quality_note": "",
+    "formatted_input_tokens": 0,
+    "formatted_output_tokens": 0
+  },
+  {
+    "id": "p1-whisper-ja-meeting",
+    "title": "2. Whisper API (whisper-1) / 複数人・会議室 / 日本語",
+    "model": "whisper-1",
+    "audio": "samples/ja_meeting_multi_speaker.m4a",
+    "language": "ja",
+    "notes": "話者混在時の精度確認",
+    "subjective_quality_score": 0,
+    "quality_note": "",
+    "formatted_input_tokens": 0,
+    "formatted_output_tokens": 0
+  },
+  {
+    "id": "p1-whisper-ja-zoom",
+    "title": "3. Whisper API (whisper-1) / Zoom録音 / 日本語",
+    "model": "whisper-1",
+    "audio": "samples/ja_zoom_recording.mp3",
+    "language": "ja",
+    "notes": "圧縮あり実環境音質での精度確認",
+    "subjective_quality_score": 0,
+    "quality_note": "",
+    "formatted_input_tokens": 0,
+    "formatted_output_tokens": 0
+  },
+  {
+    "id": "p1-4omini-ja-clear",
+    "title": "4. GPT-4o Mini Transcribe / クリア音声・1人 / 日本語",
+    "model": "gpt-4o-mini-transcribe",
+    "audio": "samples/ja_clear_single_speaker.wav",
+    "language": "ja",
+    "notes": "Whisperとの精度差比較",
+    "subjective_quality_score": 0,
+    "quality_note": "",
+    "formatted_input_tokens": 0,
+    "formatted_output_tokens": 0
+  },
+  {
+    "id": "p1-4omini-ja-meeting",
+    "title": "5. GPT-4o Mini Transcribe / 複数人・会議室 / 日本語",
+    "model": "gpt-4o-mini-transcribe",
+    "audio": "samples/ja_meeting_multi_speaker.m4a",
+    "language": "ja",
+    "notes": "コスト差と精度差の確認",
+    "subjective_quality_score": 0,
+    "quality_note": "",
+    "formatted_input_tokens": 0,
+    "formatted_output_tokens": 0
+  },
+  {
+    "id": "p1-whisper-ja-en-mix",
+    "title": "6. Whisper API (whisper-1) / クリア音声 / 日英混在",
+    "model": "whisper-1",
+    "audio": "samples/ja_en_mixed_clear.wav",
+    "notes": "言語自動判定で日英混在耐性を確認",
+    "subjective_quality_score": 0,
+    "quality_note": "",
+    "formatted_input_tokens": 0,
+    "formatted_output_tokens": 0
+  }
+]
