@@ -21,9 +21,11 @@ class EngineRecorderService implements IRecorderService {
   @override
   Future<void> start() async {
     if (!_engine.isRunning) {
+      print('[VozooRecorder] Starting real-time engine...');
       final result = _engine.startRealtime();
+      print('[VozooRecorder] startRealtime result: $result');
       if (result != 0) {
-        throw Exception('Failed to start audio engine');
+        throw Exception('Failed to start audio engine (code: $result)');
       }
       _engineStartedByUs = true;
     }
@@ -31,10 +33,12 @@ class EngineRecorderService implements IRecorderService {
     final dir = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     _currentRecordingPath = '${dir.path}/recording_$timestamp.wav';
+    print('[VozooRecorder] Recording to: $_currentRecordingPath');
 
     final result = _engine.startRecording(_currentRecordingPath!);
+    print('[VozooRecorder] startRecording result: $result');
     if (result != 0) {
-      throw Exception('Failed to start recording');
+      throw Exception('Failed to start recording (code: $result)');
     }
 
     _isRecordingController.add(true);
@@ -51,6 +55,7 @@ class EngineRecorderService implements IRecorderService {
     _durationTimer = null;
 
     final durationMs = _engine.stopRecording();
+    print('[VozooRecorder] stopRecording: durationMs=$durationMs');
     _isRecordingController.add(false);
 
     // Stop the engine if we started it (not externally managed)
@@ -64,7 +69,11 @@ class EngineRecorderService implements IRecorderService {
     }
 
     final file = File(_currentRecordingPath!);
-    if (!await file.exists()) {
+    final exists = await file.exists();
+    final size = exists ? await file.length() : 0;
+    print('[VozooRecorder] File exists=$exists, size=$size bytes, path=$_currentRecordingPath');
+
+    if (!exists) {
       throw Exception('Recording failed: output file was not created at $_currentRecordingPath');
     }
 

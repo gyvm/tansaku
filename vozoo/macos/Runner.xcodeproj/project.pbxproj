@@ -241,6 +241,7 @@
 				33CC110E2044A8840003C045 /* Bundle Framework */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
 				86B309C26697D203B87B0017 /* [CP] Embed Pods Frameworks */,
+				EBA6C968A293E47FF58F8D5A /* Copy Rust DSP Library */,
 			);
 			buildRules = (
 			);
@@ -421,6 +422,24 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		EBA6C968A293E47FF58F8D5A /* Copy Rust DSP Library */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Rust DSP Library";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "RUST_LIB=\"${SRCROOT}/../packages/vozoo_engine/target/release/libvozoo_ffi.dylib\"\nDEST=\"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\nmkdir -p \"${DEST}\"\nif [ -f \"${RUST_LIB}\" ]; then\n  cp \"${RUST_LIB}\" \"${DEST}/libvozoo_ffi.dylib\"\n  install_name_tool -id \"@rpath/libvozoo_ffi.dylib\" \"${DEST}/libvozoo_ffi.dylib\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

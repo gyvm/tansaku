@@ -5,11 +5,14 @@ PODS:
   - FlutterMacOS (1.0.0)
   - share_plus (0.0.1):
     - FlutterMacOS
+  - vozoo_engine (0.1.0):
+    - FlutterMacOS
 
 DEPENDENCIES:
   - audioplayers_darwin (from `Flutter/ephemeral/.symlinks/plugins/audioplayers_darwin/darwin`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
+  - vozoo_engine (from `Flutter/ephemeral/.symlinks/plugins/vozoo_engine/macos`)
 
 EXTERNAL SOURCES:
   audioplayers_darwin:
@@ -18,12 +21,15 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   share_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/share_plus/macos
+  vozoo_engine:
+    :path: Flutter/ephemeral/.symlinks/plugins/vozoo_engine/macos
 
 SPEC CHECKSUMS:
   audioplayers_darwin: 4f9ca89d92d3d21cec7ec580e78ca888e5fb68bd
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
+  vozoo_engine: 25f41ca403fa7f1f6810e95b5499779177b6d963
 
-PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
+PODFILE CHECKSUM: 65fdf9bd863851afb156fdeab2d769c1975755c4
 
 COCOAPODS: 1.16.2

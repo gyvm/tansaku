@@ -57,9 +57,27 @@ typedef _EngineIsRunningDart = int Function(Pointer<Void> handle);
 
 // ── Library loading ───────────────────────────────────────────────
 
-final DynamicLibrary _nativeLib = Platform.isAndroid
-    ? DynamicLibrary.open('libvozoo_ffi.so')
-    : DynamicLibrary.process();
+final DynamicLibrary _nativeLib = _loadLibrary();
+
+DynamicLibrary _loadLibrary() {
+  if (Platform.isAndroid) {
+    return DynamicLibrary.open('libvozoo_ffi.so');
+  }
+  if (Platform.isMacOS) {
+    // Try bundled Frameworks first, then fall back to Rust build output
+    final exe = Platform.resolvedExecutable;
+    final appDir = exe.substring(0, exe.lastIndexOf('/'));
+    final bundledPath = '$appDir/../Frameworks/libvozoo_ffi.dylib';
+    try {
+      return DynamicLibrary.open(bundledPath);
+    } catch (_) {
+      // Fallback: load from Rust build output (development mode)
+      return DynamicLibrary.open('libvozoo_ffi.dylib');
+    }
+  }
+  // iOS: statically linked
+  return DynamicLibrary.process();
+}
 
 final _ProcessFileDart _processFile = _nativeLib
     .lookup<NativeFunction<_ProcessFileNative>>('process_file')
