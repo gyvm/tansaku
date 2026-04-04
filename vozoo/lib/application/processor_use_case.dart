@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/entities/recorded_audio.dart';
 import '../domain/entities/voice_preset.dart';
+import '../domain/entities/effect_chain.dart';
 import 'providers.dart';
 
 class ProcessorState {
@@ -50,11 +51,24 @@ class ProcessorNotifier extends Notifier<ProcessorState> {
     return const ProcessorState();
   }
 
+  /// Process with a preset (legacy).
   Future<void> process(RecordedAudio input, VoicePreset preset) async {
     final service = ref.read(processorServiceProvider);
     try {
       state = state.copyWith(isProcessing: true, error: null, progress: 0.0);
       final result = await service.process(input, preset);
+      state = state.copyWith(isProcessing: false, processedAudio: result, progress: 1.0);
+    } catch (e) {
+      state = state.copyWith(isProcessing: false, error: e.toString());
+    }
+  }
+
+  /// Process with a custom effect chain.
+  Future<void> processWithChain(RecordedAudio input, EffectChain chain) async {
+    final service = ref.read(processorServiceProvider);
+    try {
+      state = state.copyWith(isProcessing: true, error: null, progress: 0.0);
+      final result = await service.processWithChain(input, chain);
       state = state.copyWith(isProcessing: false, processedAudio: result, progress: 1.0);
     } catch (e) {
       state = state.copyWith(isProcessing: false, error: e.toString());

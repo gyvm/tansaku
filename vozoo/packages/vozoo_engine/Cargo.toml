@@ -1,0 +1,3 @@
+[workspace]
+members = ["vozoo-core", "vozoo-nodes", "vozoo-ffi"]
+resolver = "2"

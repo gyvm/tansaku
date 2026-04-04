@@ -1,0 +1,69 @@
+group = "com.example.vozoo_engine"
+version = "1.0"
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.11.1")
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: "com.android.library"
+
+android {
+    namespace = "com.example.vozoo_engine"
+    compileSdk = 36
+    ndkVersion = android.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    defaultConfig {
+        minSdk = 24
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+}
+
+// Build Rust native library using cargo-ndk before the Android build
+tasks.register("buildRustLibrary") {
+    doLast {
+        def rustDir = file("../../vozoo_engine")
+        def jniLibsDir = file("src/main/jniLibs")
+
+        // Build for each Android ABI
+        def targets = [
+            "aarch64-linux-android": "arm64-v8a",
+            "armv7-linux-androideabi": "armeabi-v7a",
+            "x86_64-linux-android": "x86_64",
+        ]
+
+        targets.each { target, abi ->
+            exec {
+                workingDir rustDir
+                commandLine "cargo", "ndk", "-t", target, "-o", "${jniLibsDir}", "build", "-p", "vozoo-ffi", "--release"
+            }
+        }
+    }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn("buildRustLibrary")
+}

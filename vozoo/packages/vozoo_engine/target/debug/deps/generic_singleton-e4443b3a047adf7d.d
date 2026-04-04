@@ -1,0 +1,10 @@
+/Users/yosuke/GitHub/tansaku/vozoo/packages/vozoo_engine/target/debug/deps/libgeneric_singleton-e4443b3a047adf7d.rmeta: /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/lib.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/static_anymap.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/thread_local_static_anymap.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/../README.md
+
+/Users/yosuke/GitHub/tansaku/vozoo/packages/vozoo_engine/target/debug/deps/libgeneric_singleton-e4443b3a047adf7d.rlib: /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/lib.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/static_anymap.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/thread_local_static_anymap.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/../README.md
+
+/Users/yosuke/GitHub/tansaku/vozoo/packages/vozoo_engine/target/debug/deps/generic_singleton-e4443b3a047adf7d.d: /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/lib.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/static_anymap.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/thread_local_static_anymap.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/../README.md
+
+/Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/lib.rs:
+/Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/static_anymap.rs:
+/Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/thread_local_static_anymap.rs:
+/Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic_singleton-0.5.3/src/../README.md:
