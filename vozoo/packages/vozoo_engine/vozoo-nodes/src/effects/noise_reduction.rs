@@ -18,7 +18,7 @@ impl NoiseReduction {
 impl AudioNode for NoiseReduction {
     fn process(&mut self, buffer: &mut AudioBuffer) {
         // RNNoise expects 48kHz. If sample rate differs, skip.
-        if buffer.sample_rate != 48000 || buffer.samples.is_empty() {
+        if buffer.sample_rate() != 48000 || buffer.samples.is_empty() {
             return;
         }
 

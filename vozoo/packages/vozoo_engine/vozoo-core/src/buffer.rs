@@ -1,24 +1,28 @@
+use std::num::NonZeroU32;
+
 /// Mono audio buffer at a fixed sample rate.
 /// All internal processing uses f32 samples normalized to [-1.0, 1.0].
 #[derive(Clone)]
 pub struct AudioBuffer {
     pub samples: Vec<f32>,
-    pub sample_rate: u32,
+    sample_rate: NonZeroU32,
 }
 
 impl AudioBuffer {
     pub fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
         Self {
             samples,
-            sample_rate,
+            sample_rate: NonZeroU32::new(sample_rate)
+                .expect("sample_rate must be non-zero"),
         }
     }
 
     pub fn empty(sample_rate: u32) -> Self {
-        Self {
-            samples: Vec::new(),
-            sample_rate,
-        }
+        Self::new(Vec::new(), sample_rate)
+    }
+
+    pub fn sample_rate(&self) -> u32 {
+        self.sample_rate.get()
     }
 
     pub fn len(&self) -> usize {

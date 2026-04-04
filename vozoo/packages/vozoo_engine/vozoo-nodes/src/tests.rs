@@ -25,7 +25,7 @@ fn test_gorilla_preset() {
     let processed = read_wav(output).unwrap();
     // Pitch down 0.75x means output is longer
     assert!(processed.samples.len() > original.samples.len());
-    assert_eq!(processed.sample_rate, 48000);
+    assert_eq!(processed.sample_rate(), 48000);
 
     std::fs::remove_file(input).ok();
     std::fs::remove_file(output).ok();
@@ -59,7 +59,7 @@ fn test_robot_preset() {
 
     let processed = read_wav(output).unwrap();
     // Robot doesn't change length
-    assert_eq!(processed.sample_rate, 48000);
+    assert_eq!(processed.sample_rate(), 48000);
     // All samples should be within [-1.0, 1.0] (hard limiter)
     assert!(processed.samples.iter().all(|s| *s >= -1.0 && *s <= 1.0));
 

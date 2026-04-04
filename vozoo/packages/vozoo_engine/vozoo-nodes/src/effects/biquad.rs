@@ -74,8 +74,8 @@ impl BiquadFilter {
 
 impl AudioNode for BiquadFilter {
     fn process(&mut self, buffer: &mut AudioBuffer) {
-        if buffer.sample_rate != self.configured_sr {
-            self.compute_coefficients(buffer.sample_rate);
+        if buffer.sample_rate() != self.configured_sr {
+            self.compute_coefficients(buffer.sample_rate());
         }
         for s in &mut buffer.samples {
             let x = *s;

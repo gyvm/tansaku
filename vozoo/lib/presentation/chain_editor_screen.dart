@@ -41,6 +41,8 @@ class ChainEditorScreen extends ConsumerStatefulWidget {
 }
 
 class _ChainEditorScreenState extends ConsumerState<ChainEditorScreen> {
+  bool _previewActive = false;
+
   final List<EffectNode> _nodes = [
     // Default Pre Processing
     const EffectNode(type: 'dc_blocker'),
@@ -53,16 +55,17 @@ class _ChainEditorScreenState extends ConsumerState<ChainEditorScreen> {
 
   void _addNode(String type, Map<String, double> defaultParams) {
     setState(() {
-      // Insert before limiter (last node)
       final insertIdx = _nodes.isNotEmpty ? _nodes.length - 1 : 0;
       _nodes.insert(insertIdx, EffectNode(type: type, params: Map.of(defaultParams)));
     });
+    _updatePreviewChain();
   }
 
   void _removeNode(int index) {
     setState(() {
       _nodes.removeAt(index);
     });
+    _updatePreviewChain();
   }
 
   void _reorderNodes(int oldIndex, int newIndex) {
@@ -73,6 +76,7 @@ class _ChainEditorScreenState extends ConsumerState<ChainEditorScreen> {
       final node = _nodes.removeAt(oldIndex);
       _nodes.insert(newIndex, node);
     });
+    _updatePreviewChain();
   }
 
   void _updateParam(int nodeIndex, String key, double value) {
@@ -82,17 +86,45 @@ class _ChainEditorScreenState extends ConsumerState<ChainEditorScreen> {
       newParams[key] = value;
       _nodes[nodeIndex] = node.copyWith(params: newParams);
     });
+    _updatePreviewChain();
   }
+
+  EffectChain _buildChain() => EffectChain(
+        name: 'Custom',
+        nodes: List.from(_nodes),
+      );
 
   void _processChain() {
     if (_nodes.isEmpty) return;
+    ref.read(processorStateProvider.notifier).processWithChain(widget.audio, _buildChain());
+  }
 
-    final chain = EffectChain(
-      name: 'Custom',
-      nodes: List.from(_nodes),
-    );
+  void _togglePreview() {
+    final engine = ref.read(engineProvider);
+    setState(() {
+      _previewActive = !_previewActive;
+    });
 
-    ref.read(processorStateProvider.notifier).processWithChain(widget.audio, chain);
+    if (_previewActive) {
+      engine.setChain(_buildChain().toJson());
+      engine.startRealtime();
+    } else {
+      engine.stopRealtime();
+    }
+  }
+
+  void _updatePreviewChain() {
+    if (_previewActive) {
+      ref.read(engineProvider).setChain(_buildChain().toJson());
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_previewActive) {
+      ref.read(engineProvider).stopRealtime();
+    }
+    super.dispose();
   }
 
   @override
@@ -125,6 +157,15 @@ class _ChainEditorScreenState extends ConsumerState<ChainEditorScreen> {
       appBar: AppBar(
         title: const Text('Chain Editor'),
         actions: [
+          // Live preview toggle
+          IconButton(
+            icon: Icon(
+              _previewActive ? Icons.hearing : Icons.hearing_disabled,
+              color: _previewActive ? Colors.green : null,
+            ),
+            tooltip: _previewActive ? 'Preview On' : 'Preview Off',
+            onPressed: _togglePreview,
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => _showAddNodeDialog(context),

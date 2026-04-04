@@ -24,7 +24,7 @@ impl Chorus {
 
 impl AudioNode for Chorus {
     fn process(&mut self, buffer: &mut AudioBuffer) {
-        let sr = buffer.sample_rate as f32;
+        let sr = buffer.sample_rate() as f32;
         let delay_samples = self.delay_ms * sr / 1000.0;
         let depth_samples = self.depth_ms * sr / 1000.0;
         let lfo_inc = TAU * self.rate_hz / sr;

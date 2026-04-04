@@ -25,14 +25,10 @@ class AudioProcessorService implements IAudioProcessorService {
 
     _progressController.add(0.3);
 
-    try {
-      final result = await engine.processFile(input.path, outputPath, presetId);
-
-      if (result != 0) {
-        throw Exception('DSP Processing failed with code $result');
-      }
-    } catch (e) {
-      throw Exception('DSP Error: $e');
+    final result = await engine.processFile(input.path, outputPath, presetId);
+    if (result != 0) {
+      final errors = {-1: 'Read error', -2: 'Write error'};
+      throw Exception('DSP Processing failed: ${errors[result] ?? 'code $result'}');
     }
 
     _progressController.add(1.0);
@@ -65,20 +61,14 @@ class AudioProcessorService implements IAudioProcessorService {
 
     _progressController.add(0.3);
 
-    try {
-      final result = await engine.processFileWithChain(input.path, outputPath, chainJson);
-
-      if (result != 0) {
-        final errors = {-1: 'Read error', -2: 'Write error', -3: 'Invalid chain JSON'};
-        throw Exception('DSP Processing failed: ${errors[result] ?? 'Unknown error $result'}');
-      }
-    } catch (e) {
-      throw Exception('DSP Error: $e');
+    final result = await engine.processFileWithChain(input.path, outputPath, chainJson);
+    if (result != 0) {
+      final errors = {-1: 'Read error', -2: 'Write error', -3: 'Invalid chain definition'};
+      throw Exception('DSP Processing failed: ${errors[result] ?? 'code $result'}');
     }
 
     _progressController.add(1.0);
 
-    // Estimate duration change from pitch shift nodes
     double speedFactor = 1.0;
     for (final node in chain.nodes) {
       if (node.type == 'pitch_shift') {
@@ -103,5 +93,9 @@ class AudioProcessorService implements IAudioProcessorService {
     final dir = p.dirname(inputPath);
     final name = p.basenameWithoutExtension(inputPath);
     return p.join(dir, '${name}_$suffix.wav');
+  }
+
+  void dispose() {
+    _progressController.close();
   }
 }

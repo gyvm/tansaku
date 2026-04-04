@@ -20,7 +20,7 @@ impl RingMod {
 
 impl AudioNode for RingMod {
     fn process(&mut self, buffer: &mut AudioBuffer) {
-        let phase_inc = TAU * self.mod_freq / buffer.sample_rate as f32;
+        let phase_inc = TAU * self.mod_freq / buffer.sample_rate() as f32;
 
         for s in &mut buffer.samples {
             let modulator = self.phase.sin();

@@ -22,7 +22,7 @@ impl Reverb {
 
 impl AudioNode for Reverb {
     fn process(&mut self, buffer: &mut AudioBuffer) {
-        let sr = buffer.sample_rate as f32;
+        let sr = buffer.sample_rate() as f32;
         let dry = buffer.samples.clone();
 
         for (delay_ms, decay) in self.delay_times_ms.iter().zip(self.decay_factors.iter()) {

@@ -50,14 +50,17 @@ pub struct ParamInfo {
 }
 
 impl ChainDef {
-    pub fn build(&self) -> LinearChain {
+    /// Build a LinearChain from the JSON definition.
+    /// Returns an error if any node type is unknown.
+    pub fn build(&self) -> Result<LinearChain, String> {
         let mut chain = LinearChain::new();
         for node_def in &self.nodes {
-            if let Some(node) = build_node(node_def) {
-                chain.add(node);
+            match build_node(node_def) {
+                Some(node) => chain.add(node),
+                None => return Err(format!("Unknown node type: '{}'", node_def.node_type)),
             }
         }
-        chain
+        Ok(chain)
     }
 
     pub fn to_json(&self) -> String {
@@ -325,7 +328,7 @@ mod tests {
             .collect();
 
         for def in preset_chain_defs() {
-            let mut chain = def.build();
+            let mut chain = def.build().unwrap();
             let mut buffer = AudioBuffer::new(samples.clone(), 48000);
             chain.process(&mut buffer);
 
@@ -359,7 +362,7 @@ mod tests {
         assert_eq!(def.name, "Custom Clean");
         assert_eq!(def.nodes.len(), 7);
 
-        let mut chain = def.build();
+        let mut chain = def.build().unwrap();
         let samples: Vec<f32> = (0..48000)
             .map(|i| (i as f32 / 48000.0 * 440.0 * std::f32::consts::TAU).sin() * 0.3)
             .collect();

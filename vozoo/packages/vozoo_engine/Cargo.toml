@@ -1,3 +1,3 @@
 [workspace]
-members = ["vozoo-core", "vozoo-nodes", "vozoo-ffi"]
+members = ["vozoo-core", "vozoo-nodes", "vozoo-io", "vozoo-ffi"]
 resolver = "2"

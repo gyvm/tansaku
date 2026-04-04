@@ -49,8 +49,9 @@ pub fn write_wav(path: &str, buffer: &AudioBuffer) -> io::Result<()> {
     out.extend_from_slice(&16u32.to_le_bytes()); // chunk size
     out.extend_from_slice(&1u16.to_le_bytes()); // PCM format
     out.extend_from_slice(&1u16.to_le_bytes()); // mono
-    out.extend_from_slice(&buffer.sample_rate.to_le_bytes());
-    out.extend_from_slice(&(buffer.sample_rate * 2).to_le_bytes()); // byte rate
+    let sr = buffer.sample_rate();
+    out.extend_from_slice(&sr.to_le_bytes());
+    out.extend_from_slice(&(sr * 2).to_le_bytes()); // byte rate
     out.extend_from_slice(&2u16.to_le_bytes()); // block align
     out.extend_from_slice(&16u16.to_le_bytes()); // bits per sample
 
@@ -151,7 +152,7 @@ mod tests {
         let loaded = read_wav(path).unwrap();
         fs::remove_file(path).ok();
 
-        assert_eq!(loaded.sample_rate, 48000);
+        assert_eq!(loaded.sample_rate(), 48000);
         assert_eq!(loaded.samples.len(), 480);
 
         // 16-bit quantization loses some precision

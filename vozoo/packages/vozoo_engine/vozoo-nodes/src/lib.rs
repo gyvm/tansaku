@@ -42,7 +42,10 @@ pub fn process_file_with_chain(input_path: &str, output_path: &str, chain_json: 
         Err(_) => return -1,
     };
 
-    let mut chain = chain_def.build();
+    let mut chain = match chain_def.build() {
+        Ok(c) => c,
+        Err(_) => return -3,
+    };
     chain.process(&mut buffer);
 
     match write_wav(output_path, &buffer) {

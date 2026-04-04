@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vozoo_engine/vozoo_engine.dart';
 import '../domain/interfaces/i_recorder_service.dart';
 import '../domain/interfaces/i_audio_processor_service.dart';
 import '../domain/interfaces/i_audio_player_service.dart';
 import '../domain/interfaces/i_share_service.dart';
-import '../infrastructure/recorder_service.dart';
+import '../infrastructure/engine_recorder_service.dart';
 import '../infrastructure/audio_processor_service.dart';
 import '../infrastructure/audio_player_service.dart';
 import '../infrastructure/share_service.dart';
@@ -11,9 +12,17 @@ import 'recorder_use_case.dart';
 import 'processor_use_case.dart';
 import 'player_use_case.dart';
 
+// Real-time engine (singleton)
+final engineProvider = Provider<VozooEngine>((ref) {
+  final engine = VozooEngine();
+  ref.onDispose(() => engine.dispose());
+  return engine;
+});
+
 // Services
 final recorderServiceProvider = Provider<IRecorderService>((ref) {
-  return RecorderService();
+  final engine = ref.watch(engineProvider);
+  return EngineRecorderService(engine);
 });
 
 final processorServiceProvider = Provider<IAudioProcessorService>((ref) {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/entities/recorded_audio.dart';
 import '../domain/entities/voice_preset.dart';
@@ -58,7 +59,8 @@ class ProcessorNotifier extends Notifier<ProcessorState> {
       state = state.copyWith(isProcessing: true, error: null, progress: 0.0);
       final result = await service.process(input, preset);
       state = state.copyWith(isProcessing: false, processedAudio: result, progress: 1.0);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Vozoo processing error: $e\n$stackTrace');
       state = state.copyWith(isProcessing: false, error: e.toString());
     }
   }
@@ -70,7 +72,8 @@ class ProcessorNotifier extends Notifier<ProcessorState> {
       state = state.copyWith(isProcessing: true, error: null, progress: 0.0);
       final result = await service.processWithChain(input, chain);
       state = state.copyWith(isProcessing: false, processedAudio: result, progress: 1.0);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Vozoo processing error: $e\n$stackTrace');
       state = state.copyWith(isProcessing: false, error: e.toString());
     }
   }

@@ -40,7 +40,7 @@ impl LookaheadLimiter {
 impl AudioNode for LookaheadLimiter {
     fn process(&mut self, buffer: &mut AudioBuffer) {
         let ceiling = 10.0f32.powf(self.ceiling_db / 20.0);
-        let sr = buffer.sample_rate as f32;
+        let sr = buffer.sample_rate() as f32;
         let attack_coeff = (-1.0 / (self.attack_ms * 0.001 * sr)).exp();
         let release_coeff = (-1.0 / (self.release_ms * 0.001 * sr)).exp();
         let lookahead = (self.lookahead_ms * 0.001 * sr) as usize;
