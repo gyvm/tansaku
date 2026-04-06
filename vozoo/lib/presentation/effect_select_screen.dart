@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/entities/recorded_audio.dart';
 import '../domain/entities/voice_preset.dart';
 import '../application/providers.dart';
-import '../application/processor_use_case.dart'; // Import for ProcessorNotifier type
+import '../application/processor_use_case.dart';
+import 'chain_editor_screen.dart';
+import 'graph_editor_screen.dart';
 import 'result_screen.dart';
 
 class EffectSelectScreen extends ConsumerWidget {
@@ -11,25 +13,31 @@ class EffectSelectScreen extends ConsumerWidget {
 
   const EffectSelectScreen({super.key, required this.audio});
 
+  static const _presetMeta = [
+    _PresetInfo('Gorilla', Icons.pets, Colors.brown, VoicePreset.gorilla),
+    _PresetInfo('Cat', Icons.cruelty_free, Colors.orange, VoicePreset.cat),
+    _PresetInfo('Robot', Icons.smart_toy, Colors.grey, VoicePreset.robot),
+    _PresetInfo('Chorus', Icons.groups, Colors.blue, VoicePreset.chorus),
+    _PresetInfo('Reverb', Icons.church, Colors.purple, VoicePreset.reverb),
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(processorStateProvider);
     final notifier = ref.read(processorStateProvider.notifier);
 
-    // Listen for completion
     ref.listen(processorStateProvider, (previous, next) {
       if (previous?.isProcessing == true &&
           !next.isProcessing &&
           next.processedAudio != null) {
-
         Future.microtask(() {
-           if (context.mounted) {
-               Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ResultScreen(audio: next.processedAudio!),
-                  ),
-               );
-           }
+          if (context.mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ResultScreen(audio: next.processedAudio!),
+              ),
+            );
+          }
         });
       }
 
@@ -47,11 +55,82 @@ class EffectSelectScreen extends ConsumerWidget {
           ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _buildEffectTile(context, notifier, VoicePreset.gorilla, 'Gorilla', Icons.pets, Colors.brown),
-              _buildEffectTile(context, notifier, VoicePreset.cat, 'Cat', Icons.cruelty_free, Colors.orange), // cruelty_free looks like cat paw/face
-              _buildEffectTile(context, notifier, VoicePreset.robot, 'Robot', Icons.smart_toy, Colors.grey),
-              _buildEffectTile(context, notifier, VoicePreset.chorus, 'Chorus', Icons.groups, Colors.blue),
-              _buildEffectTile(context, notifier, VoicePreset.reverb, 'Reverb', Icons.church, Colors.purple),
+              // Preset section
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'Presets',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ..._presetMeta.map((info) => _buildPresetTile(
+                    context, notifier, info.preset, info.title, info.icon, info.color)),
+
+              const SizedBox(height: 24),
+
+              // Custom chain section
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'Custom Chain',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.deepPurple,
+                    child: Icon(Icons.tune, color: Colors.white),
+                  ),
+                  title: const Text(
+                    'Build Custom Chain',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: const Text('Combine effects in any order'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ChainEditorScreen(audio: audio),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Graph editor section
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'Graph Editor',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.teal,
+                    child: Icon(Icons.account_tree, color: Colors.white),
+                  ),
+                  title: const Text(
+                    'Visual Graph Editor',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: const Text('DAG routing with parallel effects & 3D audio'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => GraphEditorScreen(audio: audio),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
           if (state.isProcessing)
@@ -66,7 +145,7 @@ class EffectSelectScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEffectTile(
+  Widget _buildPresetTile(
     BuildContext context,
     ProcessorNotifier notifier,
     VoicePreset preset,
@@ -75,7 +154,7 @@ class EffectSelectScreen extends ConsumerWidget {
     Color color,
   ) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: color,
@@ -89,4 +168,13 @@ class EffectSelectScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _PresetInfo {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoicePreset preset;
+
+  const _PresetInfo(this.title, this.icon, this.color, this.preset);
 }

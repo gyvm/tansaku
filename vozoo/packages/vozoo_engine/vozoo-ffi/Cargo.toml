@@ -1,0 +1,13 @@
+[package]
+name = "vozoo-ffi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+vozoo-core = { path = "../vozoo-core" }
+vozoo-nodes = { path = "../vozoo-nodes" }
+vozoo-io = { path = "../vozoo-io" }
+serde_json = "1"

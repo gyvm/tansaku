@@ -1,0 +1,14 @@
+[package]
+name = "vozoo-cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "vozoo"
+path = "src/main.rs"
+
+[dependencies]
+vozoo-nodes = { path = "../vozoo-nodes" }
+vozoo-io = { path = "../vozoo-io" }
+clap = { version = "4", features = ["derive"] }
+serde_json = "1"

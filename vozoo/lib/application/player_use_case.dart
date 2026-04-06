@@ -57,8 +57,11 @@ class PlayerNotifier extends Notifier<PlayerState> {
   Future<void> play(String path) async {
     final service = ref.read(playerServiceProvider);
     try {
+      print('[VozooPlayer] Playing: $path');
       await service.play(path);
+      print('[VozooPlayer] Play started successfully');
     } catch (e) {
+      print('[VozooPlayer] Play error: $e');
       state = state.copyWith(error: e.toString());
     }
   }

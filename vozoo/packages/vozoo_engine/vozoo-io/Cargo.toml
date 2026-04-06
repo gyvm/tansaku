@@ -1,0 +1,9 @@
+[package]
+name = "vozoo-io"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+vozoo-core = { path = "../vozoo-core" }
+vozoo-nodes = { path = "../vozoo-nodes" }
+cpal = "0.15"
