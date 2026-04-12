@@ -31,7 +31,9 @@ urlencoding = "2"
 chrono = { version = "0.4", features = ["serde"] }
 url = "2"
 regex = "1"
-tokio = { version = "1", features = ["time"] }
+tokio = { version = "1", features = ["time", "sync"] }
+open = "5"
+log = "0.4"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2"

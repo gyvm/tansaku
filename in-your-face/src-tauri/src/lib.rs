@@ -1,8 +1,10 @@
 mod calendar;
 mod commands;
 mod oauth;
+mod scheduler;
 mod state;
 mod tray;
+mod windows;
 
 use state::SharedState;
 use std::sync::Mutex;
@@ -30,6 +32,9 @@ pub fn run() {
             commands::calendar::get_calendar_list,
             commands::calendar::get_events,
             commands::calendar::force_sync,
+            commands::alert::dismiss_alert,
+            commands::alert::snooze_alert,
+            commands::alert::join_meeting,
         ])
         .setup(|app| {
             // Restore tokens and settings from store on startup
@@ -47,6 +52,8 @@ pub fn run() {
             tray::builder::setup_tray(&app.handle())?;
 
             calendar::poller::start_polling(app.handle().clone());
+
+            scheduler::start_scheduler(app.handle().clone());
 
             Ok(())
         })

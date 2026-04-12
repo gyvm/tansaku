@@ -11,4 +11,10 @@ export const commands = {
   getCalendarList: () => invoke<CalendarInfo[]>("get_calendar_list"),
   getEvents: () => invoke<CalendarEvent[]>("get_events"),
   forceSync: () => invoke("force_sync"),
+  dismissAlert: (eventId: string) =>
+    invoke("dismiss_alert", { eventId }),
+  snoozeAlert: (eventId: string, minutes: number) =>
+    invoke("snooze_alert", { eventId, minutes }),
+  joinMeeting: (eventId: string, url: string) =>
+    invoke("join_meeting", { eventId, url }),
 };
