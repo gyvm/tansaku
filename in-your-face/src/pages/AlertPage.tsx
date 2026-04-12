@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { CalendarEvent } from "../types";
 import AlertOverlay from "../components/alert/AlertOverlay";
 import { commands } from "../lib/commands";
@@ -8,12 +8,9 @@ export default function AlertPage() {
   const [event, setEvent] = useState<CalendarEvent | null>(null);
 
   useEffect(() => {
-    const unlisten = listen<CalendarEvent>("alert-show", (e) => {
-      setEvent(e.payload);
+    commands.getAlertEvent().then((ev) => {
+      if (ev) setEvent(ev);
     });
-    return () => {
-      unlisten.then((fn) => fn());
-    };
   }, []);
 
   const handleJoin = useCallback(async () => {
@@ -38,7 +35,11 @@ export default function AlertPage() {
           if (event?.conferenceUrl) handleJoin();
           break;
         case "Escape":
-          handleDismiss();
+          if (event) {
+            handleDismiss();
+          } else {
+            getCurrentWindow().close();
+          }
           break;
         case "s":
         case "S":
@@ -54,6 +55,7 @@ export default function AlertPage() {
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center">
         <p className="text-white text-xl">Waiting for alert...</p>
+        <p className="text-gray-500 text-sm absolute bottom-8">Press Escape to close</p>
       </div>
     );
   }

@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -80,6 +81,7 @@ pub struct AppState {
     pub auth_tokens: Option<AuthTokens>,
     pub events: Vec<CalendarEvent>,
     pub sync_token: Option<String>,
+    pub pending_alerts: HashMap<String, CalendarEvent>,
 }
 
 impl Default for AppState {
@@ -89,6 +91,7 @@ impl Default for AppState {
             auth_tokens: None,
             events: vec![],
             sync_token: None,
+            pending_alerts: HashMap::new(),
         }
     }
 }

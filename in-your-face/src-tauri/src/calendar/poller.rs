@@ -17,7 +17,21 @@ pub fn start_polling(app: AppHandle) {
             };
 
             if let Err(e) = force_poll(&app).await {
-                eprintln!("Poll cycle failed: {}", e);
+                log::error!("Poll cycle failed: {}", e);
+                let is_auth_error = e.contains("refresh") || e.contains("authenticated") || e.contains("token");
+                if is_auth_error {
+                    let _ = tokens::clear_tokens(&app);
+                    {
+                        let state = app.state::<SharedState>();
+                        let mut s = state.lock().unwrap();
+                        s.auth_tokens = None;
+                    }
+                    let _ = app.emit("auth-expired", ());
+                    let _ = app.emit(
+                        "auth-changed",
+                        serde_json::json!({"isAuthenticated": false}),
+                    );
+                }
             }
 
             tokio::time::sleep(Duration::from_secs(interval)).await;

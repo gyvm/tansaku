@@ -12,6 +12,8 @@ use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    env_logger::init();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
@@ -32,6 +34,7 @@ pub fn run() {
             commands::calendar::get_calendar_list,
             commands::calendar::get_events,
             commands::calendar::force_sync,
+            commands::alert::get_alert_event,
             commands::alert::dismiss_alert,
             commands::alert::snooze_alert,
             commands::alert::join_meeting,
@@ -57,6 +60,11 @@ pub fn run() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app, event| {
+            if let tauri::RunEvent::ExitRequested { api, .. } = event {
+                api.prevent_exit();
+            }
+        });
 }

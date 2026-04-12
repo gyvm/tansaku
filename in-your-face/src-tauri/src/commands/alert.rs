@@ -1,6 +1,16 @@
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 
+use crate::state::{CalendarEvent, SharedState};
 use crate::windows::alert as alert_window;
+
+#[tauri::command]
+pub fn get_alert_event(window: WebviewWindow) -> Result<Option<CalendarEvent>, String> {
+    let label = window.label().to_string();
+    let app = window.app_handle();
+    let state = app.state::<SharedState>();
+    let mut s = state.lock().map_err(|e| e.to_string())?;
+    Ok(s.pending_alerts.remove(&label))
+}
 
 #[tauri::command]
 pub fn dismiss_alert(app: AppHandle, event_id: String) -> Result<(), String> {

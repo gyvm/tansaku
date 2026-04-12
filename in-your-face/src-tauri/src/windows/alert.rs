@@ -1,6 +1,6 @@
-use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
-use crate::state::CalendarEvent;
+use crate::state::{CalendarEvent, SharedState};
 
 /// フルスクリーンのアラートウィンドウを生成する
 pub fn show_alert(app: &AppHandle, event: &CalendarEvent) -> Result<(), String> {
@@ -18,6 +18,13 @@ pub fn show_alert(app: &AppHandle, event: &CalendarEvent) -> Result<(), String> 
         return Ok(());
     }
 
+    // イベントデータを pending_alerts に保存（フロントエンドがコマンドで取得する）
+    {
+        let state = app.state::<SharedState>();
+        let mut s = state.lock().unwrap();
+        s.pending_alerts.insert(label.clone(), event.clone());
+    }
+
     let _window = WebviewWindowBuilder::new(app, &label, WebviewUrl::App("index.html#/alert".into()))
         .title("Meeting Alert")
         .fullscreen(true)
@@ -27,14 +34,6 @@ pub fn show_alert(app: &AppHandle, event: &CalendarEvent) -> Result<(), String> 
         .skip_taskbar(true)
         .build()
         .map_err(|e| e.to_string())?;
-
-    // イベントデータをウィンドウに送信（WebView ロード完了を待つ）
-    let event_clone = event.clone();
-    let window_clone = _window.clone();
-    tauri::async_runtime::spawn(async move {
-        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-        let _ = window_clone.emit("alert-show", &event_clone);
-    });
 
     Ok(())
 }

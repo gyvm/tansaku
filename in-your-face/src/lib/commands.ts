@@ -11,6 +11,7 @@ export const commands = {
   getCalendarList: () => invoke<CalendarInfo[]>("get_calendar_list"),
   getEvents: () => invoke<CalendarEvent[]>("get_events"),
   forceSync: () => invoke("force_sync"),
+  getAlertEvent: () => invoke<CalendarEvent | null>("get_alert_event"),
   dismissAlert: (eventId: string) =>
     invoke("dismiss_alert", { eventId }),
   snoozeAlert: (eventId: string, minutes: number) =>
