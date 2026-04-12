@@ -40,6 +40,9 @@ pub fn run() {
             }
 
             tray::builder::setup_tray(&app.handle())?;
+
+            calendar::poller::start_polling(app.handle().clone());
+
             Ok(())
         })
         .run(tauri::generate_context!())
