@@ -11,12 +11,13 @@ export default function CalendarPicker() {
     commands.getCalendarList().then(setCalendars).catch(console.error);
   }, []);
 
-  const toggleCalendar = (id: string, checked: boolean) => {
+  const toggleCalendar = async (id: string, checked: boolean) => {
     if (!settings) return;
     const selected = checked
       ? [...settings.selectedCalendars, id]
       : settings.selectedCalendars.filter((c) => c !== id);
-    update({ ...settings, selectedCalendars: selected });
+    await update({ ...settings, selectedCalendars: selected });
+    commands.forceSync().catch(console.error);
   };
 
   if (calendars.length === 0) return null;

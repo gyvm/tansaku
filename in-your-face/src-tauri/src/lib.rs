@@ -32,11 +32,16 @@ pub fn run() {
             commands::calendar::force_sync,
         ])
         .setup(|app| {
-            // Restore tokens from store on startup
-            if let Ok(Some(tokens)) = oauth::tokens::load_tokens(&app.handle()) {
+            // Restore tokens and settings from store on startup
+            {
                 let state = app.state::<SharedState>();
                 let mut s = state.lock().expect("Failed to lock state");
-                s.auth_tokens = Some(tokens);
+                if let Ok(Some(tokens)) = oauth::tokens::load_tokens(&app.handle()) {
+                    s.auth_tokens = Some(tokens);
+                }
+                if let Ok(Some(settings)) = commands::settings::load_settings(&app.handle()) {
+                    s.settings = settings;
+                }
             }
 
             tray::builder::setup_tray(&app.handle())?;

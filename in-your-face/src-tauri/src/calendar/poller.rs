@@ -63,7 +63,9 @@ pub async fn force_poll(app: &AppHandle) -> Result<(), String> {
     }
 
     let _ = app.emit("events-changed", &all_events);
-    let _ = crate::tray::builder::rebuild_tray_menu(app);
+    if let Err(e) = crate::tray::builder::rebuild_tray_menu(app) {
+        eprintln!("[poller] tray rebuild error: {}", e);
+    }
 
     Ok(())
 }
