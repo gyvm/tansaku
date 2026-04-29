@@ -1,0 +1,39 @@
+name: FullScreenAlert
+options:
+  bundleIdPrefix: com.tansaku
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+targets:
+  FullScreenAlert:
+    type: application
+    platform: macOS
+    sources:
+      - FullScreenAlert
+    settings:
+      base:
+        SWIFT_VERSION: "5.9"
+        PRODUCT_BUNDLE_IDENTIFIER: com.tansaku.fullscreen-alert
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        INFOPLIST_FILE: FullScreenAlert/Info.plist
+        CODE_SIGN_ENTITLEMENTS: FullScreenAlert/FullScreenAlert.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        GENERATE_INFOPLIST_FILE: NO
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: "1.0.0"
+      configs:
+        Release:
+          CODE_SIGN_IDENTITY: "Apple Distribution"
+          CODE_SIGN_STYLE: Automatic
+        Debug:
+          CODE_SIGN_IDENTITY: "-"
+          CODE_SIGN_STYLE: Automatic
+schemes:
+  FullScreenAlert:
+    build:
+      targets:
+        FullScreenAlert: all
+    run:
+      config: Debug
+    archive:
+      config: Release
