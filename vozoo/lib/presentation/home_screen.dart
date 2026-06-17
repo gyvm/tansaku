@@ -4,7 +4,7 @@ import '../application/providers.dart';
 import '../application/recorder_use_case.dart';
 import '../domain/entities/effect_chain.dart';
 import '../domain/entities/effect_node.dart';
-import 'effect_select_screen.dart';
+import 'simple_voice_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -64,7 +64,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           if (context.mounted) {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => EffectSelectScreen(audio: next.lastRecording!),
+                builder: (context) => SimpleVoiceScreen(audio: next.lastRecording!),
               ),
             );
           }

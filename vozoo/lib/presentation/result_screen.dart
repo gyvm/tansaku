@@ -14,6 +14,18 @@ class ResultScreen extends ConsumerStatefulWidget {
 
 class _ResultScreenState extends ConsumerState<ResultScreen> {
   @override
+  void initState() {
+    super.initState();
+    // Auto-play the transformed voice on open so kids hear it immediately
+    // (SIMPLE_VOICE_SPEC.md §8). Deferred until after first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(playerStateProvider.notifier).play(widget.audio.path);
+      }
+    });
+  }
+
+  @override
   void dispose() {
     // Stop playing when leaving screen
     ref.read(playerStateProvider.notifier).stop();
