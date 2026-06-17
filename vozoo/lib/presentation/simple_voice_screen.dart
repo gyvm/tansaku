@@ -33,6 +33,9 @@ class _SimpleVoiceScreenState extends ConsumerState<SimpleVoiceScreen>
   }
 
   void _processCharacter(SimpleCharacter c) {
+    // Ignore taps while a render is in flight: prevents double-processing and
+    // stacking duplicate ResultScreens (SPEC §8 連打防止).
+    if (ref.read(processorStateProvider).isProcessing) return;
     setState(() => _selectedCharacterId = c.id);
     ref.read(processorStateProvider.notifier).processWithChain(
           widget.audio,
@@ -41,6 +44,7 @@ class _SimpleVoiceScreenState extends ConsumerState<SimpleVoiceScreen>
   }
 
   void _processCustom() {
+    if (ref.read(processorStateProvider).isProcessing) return;
     ref.read(processorStateProvider.notifier).processWithChain(
           widget.audio,
           _custom.toChain(),
@@ -107,19 +111,24 @@ class _SimpleVoiceScreenState extends ConsumerState<SimpleVoiceScreen>
             ],
           ),
           if (state.isProcessing)
-            Container(
-              color: Colors.black54,
-              child: const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text(
-                      'へんしんちゅう...',
-                      style: TextStyle(color: Colors.white, fontSize: 18),
+            // AbsorbPointer swallows taps so kids can't queue up extra renders.
+            const Positioned.fill(
+              child: AbsorbPointer(
+                child: ColoredBox(
+                  color: Colors.black54,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text(
+                          'へんしんちゅう...',
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
