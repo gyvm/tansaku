@@ -76,10 +76,49 @@ impl ChainDef {
     pub fn from_json(json: &str) -> Result<Self, serde_json::Error> {
         serde_json::from_str(json)
     }
+
+    /// Ensure the chain ends with a limiter so output can't clip or get too
+    /// loud (kid-safety, see docs/SIMPLE_VOICE_SPEC.md §6). No-op if the last
+    /// node is already a limiter, so callers/presets that add their own are
+    /// not double-limited.
+    pub fn ensure_trailing_limiter(&mut self) {
+        let ends_with_limiter = self
+            .nodes
+            .last()
+            .map(|n| matches!(n.node_type.as_str(), "limiter" | "lookahead_limiter"))
+            .unwrap_or(false);
+        if !ends_with_limiter {
+            self.nodes.push(NodeDef {
+                node_type: "lookahead_limiter".into(),
+                params: serde_json::json!({ "ceiling_db": -1.0 }),
+            });
+        }
+    }
 }
 
 fn get_f32(params: &serde_json::Value, key: &str, default: f32) -> f32 {
     params.get(key).and_then(|v| v.as_f64()).map(|v| v as f32).unwrap_or(default)
+}
+
+/// Clamp a parameter value to the [min, max] declared for it in
+/// `available_nodes()`. Unknown node/param pairs pass through unchanged.
+/// Called only at chain-build time, so the lookup cost is negligible.
+fn clamp_param(node_type: &str, key: &str, value: f32) -> f32 {
+    for node in available_nodes() {
+        if node.node_type == node_type {
+            for param in &node.params {
+                if param.key == key {
+                    return value.clamp(param.min as f32, param.max as f32);
+                }
+            }
+        }
+    }
+    value
+}
+
+/// Read a parameter and clamp it to its declared safe range.
+fn get_f32c(params: &serde_json::Value, node_type: &str, key: &str, default: f32) -> f32 {
+    clamp_param(node_type, key, get_f32(params, key, default))
 }
 
 /// Build an AudioNode from a NodeDef. Public for use by graph_def.
@@ -94,11 +133,11 @@ fn build_node(def: &NodeDef) -> Option<Box<dyn vozoo_core::AudioNode>> {
         "noise_reduction" => Some(Box::new(NoiseReduction::new())),
         "dc_blocker" => Some(Box::new(DcBlocker::new())),
         "normalizer" => {
-            let target_rms = get_f32(p, "target_rms", 0.2);
+            let target_rms = get_f32c(p, "normalizer", "target_rms", 0.2);
             Some(Box::new(Normalizer::new(target_rms)))
         }
         "vad" => {
-            let threshold_db = get_f32(p, "threshold_db", -40.0);
+            let threshold_db = get_f32c(p, "vad", "threshold_db", -40.0);
             Some(Box::new(Vad::new(threshold_db)))
         }
 
@@ -106,87 +145,89 @@ fn build_node(def: &NodeDef) -> Option<Box<dyn vozoo_core::AudioNode>> {
         "pitch_shift" => {
             // Phase vocoder: prefer "semitones" param, fall back to "factor" for compat
             if let Some(semitones) = p.get("semitones").and_then(|v| v.as_f64()) {
-                Some(Box::new(PitchShift::new(semitones as f32)))
+                let semitones = clamp_param("pitch_shift", "semitones", semitones as f32);
+                Some(Box::new(PitchShift::new(semitones)))
             } else {
                 let factor = get_f32(p, "factor", 1.0);
                 Some(Box::new(PitchShift::from_factor(factor)))
             }
         }
         "pitch_shift_resample" => {
-            let factor = get_f32(p, "factor", 1.0);
+            let factor = get_f32c(p, "pitch_shift_resample", "factor", 1.0);
             Some(Box::new(PitchShiftResample::new(factor)))
         }
         "formant_shift" => {
-            let shift_factor = get_f32(p, "shift_factor", 1.0);
+            let shift_factor = get_f32c(p, "formant_shift", "shift_factor", 1.0);
             Some(Box::new(FormantShift::new(shift_factor)))
         }
         "lowpass" => {
-            let freq = get_f32(p, "freq", 1000.0);
-            let q = get_f32(p, "q", 0.707);
+            let freq = get_f32c(p, "lowpass", "freq", 1000.0);
+            let q = get_f32c(p, "lowpass", "q", 0.707);
             Some(Box::new(BiquadFilter::new(FilterType::LowPass, freq, q)))
         }
         "highpass" => {
-            let freq = get_f32(p, "freq", 500.0);
-            let q = get_f32(p, "q", 0.707);
+            let freq = get_f32c(p, "highpass", "freq", 500.0);
+            let q = get_f32c(p, "highpass", "q", 0.707);
             Some(Box::new(BiquadFilter::new(FilterType::HighPass, freq, q)))
         }
         "gain" => {
-            let factor = get_f32(p, "factor", 1.0);
+            let factor = get_f32c(p, "gain", "factor", 1.0);
             Some(Box::new(Gain::new(factor)))
         }
 
         // Character / Spatial
         "ring_mod" => {
-            let mod_freq = get_f32(p, "mod_freq", 50.0);
-            let quantize_steps = get_f32(p, "quantize_steps", 8.0);
-            Some(Box::new(RingMod::new(mod_freq, quantize_steps)))
+            let mod_freq = get_f32c(p, "ring_mod", "mod_freq", 50.0);
+            let quantize_steps = get_f32c(p, "ring_mod", "quantize_steps", 8.0);
+            let mix = get_f32c(p, "ring_mod", "mix", 1.0);
+            Some(Box::new(RingMod::with_mix(mod_freq, quantize_steps, mix)))
         }
         "chorus" => {
-            let delay_ms = get_f32(p, "delay_ms", 25.0);
-            let depth_ms = get_f32(p, "depth_ms", 5.0);
-            let rate_hz = get_f32(p, "rate_hz", 1.5);
-            let mix = get_f32(p, "mix", 0.5);
+            let delay_ms = get_f32c(p, "chorus", "delay_ms", 25.0);
+            let depth_ms = get_f32c(p, "chorus", "depth_ms", 5.0);
+            let rate_hz = get_f32c(p, "chorus", "rate_hz", 1.5);
+            let mix = get_f32c(p, "chorus", "mix", 0.5);
             Some(Box::new(Chorus::new(delay_ms, depth_ms, rate_hz, mix)))
         }
         "reverb" => Some(Box::new(Reverb::default_comb())),
         "hrtf" => {
-            let azimuth = get_f32(p, "azimuth", 0.0);
-            let elevation = get_f32(p, "elevation", 0.0);
-            let distance = get_f32(p, "distance", 1.0);
+            let azimuth = get_f32c(p, "hrtf", "azimuth", 0.0);
+            let elevation = get_f32c(p, "hrtf", "elevation", 0.0);
+            let distance = get_f32c(p, "hrtf", "distance", 1.0);
             Some(Box::new(Hrtf::new(azimuth, elevation, distance)))
         }
         "convolution_reverb" => {
-            let room_size = get_f32(p, "room_size", 0.5);
-            let damping = get_f32(p, "damping", 0.5);
-            let dry_wet = get_f32(p, "dry_wet", 0.3);
+            let room_size = get_f32c(p, "convolution_reverb", "room_size", 0.5);
+            let damping = get_f32c(p, "convolution_reverb", "damping", 0.5);
+            let dry_wet = get_f32c(p, "convolution_reverb", "dry_wet", 0.3);
             Some(Box::new(ConvolutionReverb::new(room_size, damping, dry_wet)))
         }
 
         // Dynamics
         "compressor" => {
-            let threshold_db = get_f32(p, "threshold_db", -20.0);
-            let ratio = get_f32(p, "ratio", 4.0);
-            let attack_ms = get_f32(p, "attack_ms", 10.0);
-            let release_ms = get_f32(p, "release_ms", 100.0);
-            let knee_db = get_f32(p, "knee_db", 6.0);
-            let makeup_db = get_f32(p, "makeup_db", 0.0);
+            let threshold_db = get_f32c(p, "compressor", "threshold_db", -20.0);
+            let ratio = get_f32c(p, "compressor", "ratio", 4.0);
+            let attack_ms = get_f32c(p, "compressor", "attack_ms", 10.0);
+            let release_ms = get_f32c(p, "compressor", "release_ms", 100.0);
+            let knee_db = get_f32c(p, "compressor", "knee_db", 6.0);
+            let makeup_db = get_f32c(p, "compressor", "makeup_db", 0.0);
             Some(Box::new(Compressor::new(threshold_db, ratio, attack_ms, release_ms, knee_db, makeup_db)))
         }
         "deesser" => {
-            let frequency = get_f32(p, "frequency", 5000.0);
-            let threshold_db = get_f32(p, "threshold_db", -20.0);
-            let ratio = get_f32(p, "ratio", 6.0);
+            let frequency = get_f32c(p, "deesser", "frequency", 5000.0);
+            let threshold_db = get_f32c(p, "deesser", "threshold_db", -20.0);
+            let ratio = get_f32c(p, "deesser", "ratio", 6.0);
             Some(Box::new(DeEsser::new(frequency, threshold_db, ratio)))
         }
 
         // Post Processing
         "limiter" => Some(Box::new(HardLimiter)),
         "lookahead_limiter" => {
-            let ceiling_db = get_f32(p, "ceiling_db", -1.0);
+            let ceiling_db = get_f32c(p, "lookahead_limiter", "ceiling_db", -1.0);
             Some(Box::new(LookaheadLimiter::new(ceiling_db)))
         }
         "loudness_norm" => {
-            let target_lufs = get_f32(p, "target_lufs", -14.0);
+            let target_lufs = get_f32c(p, "loudness_norm", "target_lufs", -14.0);
             Some(Box::new(LoudnessNorm::new(target_lufs)))
         }
 
@@ -262,6 +303,7 @@ pub fn available_nodes() -> Vec<NodeInfo> {
             params: vec![
                 ParamInfo { key: "mod_freq".into(), name: "Mod Frequency (Hz)".into(), min: 1.0, max: 1000.0, default: 50.0 },
                 ParamInfo { key: "quantize_steps".into(), name: "Quantize Steps".into(), min: 0.0, max: 64.0, default: 8.0 },
+                ParamInfo { key: "mix".into(), name: "Wet/Dry Mix".into(), min: 0.0, max: 1.0, default: 1.0 },
             ],
         },
         NodeInfo {
@@ -491,6 +533,92 @@ mod tests {
         let mut buffer = vozoo_core::AudioBuffer::new(samples, 48000);
         chain.process(&mut buffer);
         assert!(!buffer.samples.is_empty());
+    }
+
+    #[test]
+    fn test_param_clamping_caps_out_of_range_gain() {
+        use vozoo_core::AudioBuffer;
+        // gain.factor max is 4.0; ask for 100 and expect it clamped to 4.0.
+        let json = r#"{"name":"loud","nodes":[{"type":"gain","params":{"factor":100}}]}"#;
+        let def = ChainDef::from_json(json).unwrap();
+        let mut chain = def.build().unwrap();
+
+        let mut buffer = AudioBuffer::new(vec![0.5; 1000], 48000);
+        chain.process(&mut buffer);
+
+        let max = buffer.samples.iter().map(|s| s.abs()).fold(0.0f32, f32::max);
+        // 0.5 * clamped 4.0 = 2.0 (not 0.5 * 100 = 50.0)
+        assert!((max - 2.0).abs() < 0.01, "gain should clamp to 4.0, got max {max}");
+    }
+
+    #[test]
+    fn test_ensure_trailing_limiter_appends_once() {
+        let mut def = ChainDef {
+            name: "x".into(),
+            nodes: vec![NodeDef { node_type: "gain".into(), params: serde_json::json!({"factor": 2.0}) }],
+        };
+        def.ensure_trailing_limiter();
+        assert_eq!(def.nodes.last().unwrap().node_type, "lookahead_limiter");
+        let len_after_first = def.nodes.len();
+
+        // Idempotent: already ends with a limiter -> no second one.
+        def.ensure_trailing_limiter();
+        assert_eq!(def.nodes.len(), len_after_first, "must not double-append a limiter");
+    }
+
+    #[test]
+    fn test_ensure_trailing_limiter_respects_existing_hard_limiter() {
+        let mut def = ChainDef {
+            name: "x".into(),
+            nodes: vec![
+                NodeDef { node_type: "gain".into(), params: serde_json::json!({"factor": 2.0}) },
+                NodeDef { node_type: "limiter".into(), params: serde_json::json!({}) },
+            ],
+        };
+        def.ensure_trailing_limiter();
+        assert_eq!(def.nodes.len(), 2, "existing trailing limiter should be kept as-is");
+        assert_eq!(def.nodes.last().unwrap().node_type, "limiter");
+    }
+
+    #[test]
+    fn test_trailing_limiter_keeps_output_safe() {
+        use vozoo_core::AudioBuffer;
+        use std::f32::consts::TAU;
+
+        // A deliberately hot chain: clamped gain (4.0) on a near-full-scale tone.
+        let json = r#"{"name":"hot","nodes":[{"type":"gain","params":{"factor":4.0}}]}"#;
+        let mut def = ChainDef::from_json(json).unwrap();
+        def.ensure_trailing_limiter();
+        let mut chain = def.build().unwrap();
+
+        let samples: Vec<f32> = (0..48000)
+            .map(|i| (i as f32 / 48000.0 * 440.0 * TAU).sin() * 0.9)
+            .collect();
+        let mut buffer = AudioBuffer::new(samples, 48000);
+        chain.process(&mut buffer);
+
+        // The lookahead limiter has a smooth (slow) attack, so a very hot input
+        // can briefly overshoot at the very start. Once it settles, sustained
+        // output sits at the -1 dBFS ceiling (~0.891). Check the settled tail,
+        // matching the existing preset test's convention.
+        let ceiling = 10.0f32.powf(-1.0 / 20.0);
+        let tail_start = buffer.samples.len() * 3 / 4;
+        let tail_max = buffer.samples[tail_start..]
+            .iter()
+            .map(|s| s.abs())
+            .fold(0.0f32, f32::max);
+        assert!(
+            tail_max < ceiling * 1.1,
+            "limited output should settle near ceiling {ceiling}, got {tail_max}"
+        );
+    }
+
+    #[test]
+    fn test_ring_mod_mix_param_accepted_and_clamped() {
+        // mix above 1.0 should be clamped (no panic, builds fine).
+        let json = r#"{"name":"r","nodes":[{"type":"ring_mod","params":{"mod_freq":50,"quantize_steps":8,"mix":5.0}}]}"#;
+        let def = ChainDef::from_json(json).unwrap();
+        assert!(def.build().is_ok());
     }
 
     #[test]
