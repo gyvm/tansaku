@@ -1,3 +1,4 @@
+import 'dart:ui' show FontFeature;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../application/providers.dart';
@@ -5,6 +6,7 @@ import '../application/recorder_use_case.dart';
 import '../domain/entities/effect_chain.dart';
 import '../domain/entities/effect_node.dart';
 import 'simple_voice_screen.dart';
+import 'widgets.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -78,18 +80,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     });
 
+    final recording = state.status == RecorderStatus.recording;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Vozoo'),
+        title: const Text('こえ あそび'),
+        centerTitle: true,
         actions: [
-          // Monitor toggle
+          // Live monitoring (advanced, kept subtle).
           IconButton(
             icon: Icon(
               _monitorEnabled ? Icons.headset : Icons.headset_off,
               color: _monitorEnabled ? Colors.green : null,
             ),
-            tooltip: _monitorEnabled ? 'Monitor On' : 'Monitor Off',
-            onPressed: state.status != RecorderStatus.recording ? _toggleMonitor : null,
+            tooltip: _monitorEnabled ? 'モニターオン' : 'モニターオフ',
+            onPressed: !recording ? _toggleMonitor : null,
           ),
         ],
       ),
@@ -97,67 +102,64 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (state.status == RecorderStatus.recording) ...[
-              const Text(
-                'Recording...',
-                style: TextStyle(color: Colors.red, fontSize: 24, fontWeight: FontWeight.bold),
+            Text(
+              recording ? 'ろくおん ちゅう' : 'こえを ろくおん しよう',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              _formatDuration(state.duration),
+              style: TextStyle(
+                fontSize: 44,
+                fontFeatures: const [FontFeature.tabularFigures()],
+                color: recording ? Colors.red : Colors.black38,
               ),
-              if (_monitorEnabled)
-                const Text(
-                  'Live monitoring enabled',
-                  style: TextStyle(color: Colors.green, fontSize: 14),
-                ),
-              const SizedBox(height: 20),
-              Text(
-                _formatDuration(state.duration),
-                style: const TextStyle(fontSize: 48, fontFamily: 'Monospace'),
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton.icon(
-                onPressed: () => notifier.stopRecording(),
-                icon: const Icon(Icons.stop, size: 32),
-                label: const Text('STOP RECORDING'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade100,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                ),
-              ),
-            ] else ...[
-              const Text(
-                'Ready to Record',
-                style: TextStyle(fontSize: 24),
-              ),
-              const SizedBox(height: 16),
-              if (_monitorEnabled)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.green.shade200),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.headset, color: Colors.green, size: 16),
-                      SizedBox(width: 4),
-                      Text('Monitor active', style: TextStyle(color: Colors.green, fontSize: 12)),
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 40),
-              ElevatedButton.icon(
-                onPressed: () => notifier.startRecording(),
-                icon: const Icon(Icons.mic, size: 32),
-                label: const Text('START RECORDING'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple.shade100,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                ),
-              ),
+            ),
+            const SizedBox(height: 36),
+            // One big, obvious button: tap to start, tap to stop.
+            CircleButton(
+              icon: recording ? Icons.stop_rounded : Icons.mic_rounded,
+              color: recording ? Colors.red : kAccent,
+              size: 160,
+              onPressed: () =>
+                  recording ? notifier.stopRecording() : notifier.startRecording(),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              recording ? 'おしたら とまるよ' : 'おしてね',
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+            if (_monitorEnabled && !recording) ...[
+              const SizedBox(height: 24),
+              const _MonitorChip(),
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _MonitorChip extends StatelessWidget {
+  const _MonitorChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.green.shade200),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.headset, color: Colors.green, size: 18),
+          SizedBox(width: 6),
+          Text('じぶんの こえが きこえるよ',
+              style: TextStyle(color: Colors.green, fontSize: 13)),
+        ],
       ),
     );
   }

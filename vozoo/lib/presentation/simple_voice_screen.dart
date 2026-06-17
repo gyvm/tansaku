@@ -5,6 +5,7 @@ import '../domain/entities/simple_voice.dart';
 import '../application/providers.dart';
 import 'result_screen.dart';
 import 'effect_select_screen.dart';
+import 'widgets.dart';
 
 /// Kids-friendly voice transform screen (SIMPLE_VOICE_SPEC.md).
 ///
@@ -79,9 +80,12 @@ class _SimpleVoiceScreenState extends ConsumerState<SimpleVoiceScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('こえを へんしんしよう'),
+        centerTitle: true,
         actions: [
-          // Advanced (existing) editors live behind "もっと".
-          TextButton(
+          // Advanced (existing) editors, kept out of the way for kids.
+          IconButton(
+            icon: const Icon(Icons.tune_rounded),
+            tooltip: 'くわしく せってい',
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -89,12 +93,12 @@ class _SimpleVoiceScreenState extends ConsumerState<SimpleVoiceScreen>
                 ),
               );
             },
-            child: const Text('もっと'),
           ),
         ],
         bottom: TabBar(
           controller: _tab,
           labelStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          indicatorSize: TabBarIndicatorSize.tab,
           tabs: const [
             Tab(text: 'かんたん'),
             Tab(text: 'カスタム'),
@@ -140,19 +144,32 @@ class _SimpleVoiceScreenState extends ConsumerState<SimpleVoiceScreen>
   // ---- かんたん tab -------------------------------------------------------
 
   Widget _buildEasyTab() {
-    return GridView.count(
-      padding: const EdgeInsets.all(16),
-      crossAxisCount: 2,
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: 1.05,
-      children: kSimpleCharacters
-          .map((c) => _CharacterCard(
-                character: c,
-                selected: _selectedCharacterId == c.id,
-                onTap: () => _processCharacter(c),
-              ))
-          .toList(),
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
+          child: Text(
+            'すきな キャラを えらんでね',
+            style: TextStyle(fontSize: 16, color: Colors.black54),
+          ),
+        ),
+        Expanded(
+          child: GridView.count(
+            padding: const EdgeInsets.all(16),
+            crossAxisCount: 2,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: 1.05,
+            children: kSimpleCharacters
+                .map((c) => _CharacterCard(
+                      character: c,
+                      selected: _selectedCharacterId == c.id,
+                      onTap: () => _processCharacter(c),
+                    ))
+                .toList(),
+          ),
+        ),
+      ],
     );
   }
 
@@ -226,23 +243,10 @@ class _SimpleVoiceScreenState extends ConsumerState<SimpleVoiceScreen>
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-        child: SizedBox(
-          height: 60,
-          child: ElevatedButton.icon(
-            onPressed: _processCustom,
-            icon: const Icon(Icons.play_arrow, size: 32),
-            label: const Text(
-              'きいてみる',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepOrange,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-          ),
+        child: BigButton(
+          icon: Icons.play_arrow_rounded,
+          label: 'きいてみる',
+          onPressed: _processCustom,
         ),
       ),
     );
