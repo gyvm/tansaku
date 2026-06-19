@@ -61,10 +61,14 @@ pub fn process_file_with_graph(input_path: &str, output_path: &str, graph_json: 
 /// Process a WAV file with a JSON chain definition.
 /// Returns 0 on success, -1 on read error, -2 on write error, -3 on invalid JSON.
 pub fn process_file_with_chain(input_path: &str, output_path: &str, chain_json: &str) -> c_int {
-    let chain_def = match ChainDef::from_json(chain_json) {
+    let mut chain_def = match ChainDef::from_json(chain_json) {
         Ok(d) => d,
         Err(_) => return -3,
     };
+
+    // Kid-safety: always finish with a limiter so no chain can clip or blast
+    // (docs/SIMPLE_VOICE_SPEC.md §6). No-op if one is already present.
+    chain_def.ensure_trailing_limiter();
 
     let mut buffer = match read_wav(input_path) {
         Ok(b) => b,

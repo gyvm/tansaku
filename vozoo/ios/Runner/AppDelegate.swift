@@ -14,19 +14,7 @@ import AVFoundation
     let channel = FlutterMethodChannel(name: "com.example.vozoo/recorder",
                                        binaryMessenger: controller.binaryMessenger)
 
-    // Initialize RecorderService
-    // Need to adjust RecorderService init signature to match if I changed it in previous step
-    // Actually in previous step I used `init(messenger: FlutterBinaryMessenger)`
-    // But I need to conform to FlutterStreamHandler signature properly or split it
-
-    // Let's fix RecorderService.swift first to be correct, then update this.
-    // For now, assume RecorderService is correct.
-
-    // However, I see I used `@UIApplicationMain` in previous write, but modern Flutter uses `@main`.
-    // Let's stick to what was there or `@main` if it's new project.
-    // Since I overwrote it, I should be careful.
-    // The previous read showed `@UIApplicationMain` because I overwrote it.
-    // Let's use `@main` which is standard for newer Flutter/iOS.
+    configureAudioSession()
 
     GeneratedPluginRegistrant.register(with: self)
 
@@ -38,5 +26,26 @@ import AVFoundation
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  private func configureAudioSession() {
+    let session = AVAudioSession.sharedInstance()
+    do {
+      try session.setCategory(
+        .playAndRecord,
+        mode: .default,
+        options: [.defaultToSpeaker, .allowBluetooth]
+      )
+      try session.setPreferredSampleRate(48_000)
+      try session.setPreferredIOBufferDuration(0.01)
+      try session.setActive(true)
+      session.requestRecordPermission { granted in
+        if !granted {
+          NSLog("Microphone permission was not granted")
+        }
+      }
+    } catch {
+      NSLog("Failed to configure AVAudioSession: \(error.localizedDescription)")
+    }
   }
 }

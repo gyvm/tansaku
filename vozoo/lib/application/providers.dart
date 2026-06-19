@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vozoo_engine/vozoo_engine.dart';
 import '../domain/interfaces/i_recorder_service.dart';
@@ -5,6 +7,7 @@ import '../domain/interfaces/i_audio_processor_service.dart';
 import '../domain/interfaces/i_audio_player_service.dart';
 import '../domain/interfaces/i_share_service.dart';
 import '../infrastructure/engine_recorder_service.dart';
+import '../infrastructure/recorder_service.dart';
 import '../infrastructure/audio_processor_service.dart';
 import '../infrastructure/audio_player_service.dart';
 import '../infrastructure/share_service.dart';
@@ -21,6 +24,12 @@ final engineProvider = Provider<VozooEngine>((ref) {
 
 // Services
 final recorderServiceProvider = Provider<IRecorderService>((ref) {
+  if (Platform.isIOS) {
+    final service = RecorderService();
+    ref.onDispose(service.dispose);
+    return service;
+  }
+
   final engine = ref.watch(engineProvider);
   return EngineRecorderService(engine);
 });
