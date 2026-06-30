@@ -9,7 +9,7 @@ Vozoo is built using a Layered Architecture with Flutter Riverpod for state mana
 - **State Management**: Uses `ConsumerWidget` and `ConsumerStatefulWidget` to listen to Riverpod providers.
 - **Screens**:
   - `HomeScreen`: Recording control.
-  - `EffectSelectScreen`: Choosing voice effects.
+  - `SimpleVoiceScreen`: Main transformation flow with character presets and four custom sliders.
   - `ResultScreen`: Playback, Save, Share.
 
 ### 2. Application (`lib/application`)
@@ -21,7 +21,7 @@ Vozoo is built using a Layered Architecture with Flutter Riverpod for state mana
 
 ### 3. Domain (`lib/domain`)
 - **Responsibility**: Defines core business entities and abstract interfaces.
-- **Entities**: `RecordedAudio`, `VoicePreset`.
+- **Entities**: `RecordedAudio`, `VoicePreset`, `SimpleCharacter`, `CustomVoiceSettings`.
 - **Interfaces**:
   - `IRecorderService`
   - `IAudioProcessorService`
@@ -32,27 +32,24 @@ Vozoo is built using a Layered Architecture with Flutter Riverpod for state mana
 ### 4. Infrastructure (`lib/infrastructure`)
 - **Responsibility**: Concrete implementations of Domain interfaces.
 - **Components**:
-  - `RecorderService`: Uses MethodChannel to talk to Native iOS (AVAudioRecorder) and Android (AudioRecord).
-  - `AudioProcessorService`: Uses FFI to call C++ DSP functions.
+  - `EngineRecorderService`: Uses the shared real-time engine for capture.
+  - `AudioProcessorService`: Uses FFI to call the Rust DSP engine.
   - `AudioPlayerService`: Wraps `audioplayers` package.
   - `ShareService`: Wraps `share_plus`.
-  - `StorageService`: Wraps `path_provider`.
 
 ## Native Modules
 
-### C++ DSP Core (`packages/vozoo_dsp`)
-- **Location**: `packages/vozoo_dsp/src/vozoo_dsp.cpp`
-- **Responsibility**: Audio signal processing (Pitch shift, EQ, Effects).
-- **Interface**: `process_file(input, output, preset_id)`
-- **Build**: Built via CMake (Android) and Podspec/Xcode (iOS).
+### Rust DSP Core (`packages/vozoo_engine`)
+- **Location**: `packages/vozoo_engine/vozoo-nodes/`
+- **Responsibility**: Audio signal processing (pitch, formant, modulation, reverb, spatial, dynamics).
+- **Interface**:
+  - `process_file(input, output, preset_id)`
+  - `process_file_with_chain(input, output, chain_json)`
+- **Build**: Exposed through `vozoo-ffi` and loaded from Flutter with `packages/vozoo_engine/lib/vozoo_engine.dart`.
 
-### iOS Native (`ios/Runner`)
-- **RecorderService.swift**: Implements audio recording using `AVAudioRecorder`.
-- **Exposed via**: MethodChannel `com.example.vozoo/recorder`.
-
-### Android Native (`android/app`)
-- **MainActivity.kt / RecorderService**: Implements audio recording using `AudioRecord`.
-- **Exposed via**: MethodChannel `com.example.vozoo/recorder`.
+### Shared Realtime Path
+- `vozoo-io::RealtimeEngine`: drives monitor / record / process paths for native audio devices.
+- `engineProvider` in Flutter exposes the shared engine to recording and live monitor UI.
 
 ## Class Diagram (Simplified)
 
@@ -61,25 +58,45 @@ classDiagram
     class HomeScreen {
         +build()
     }
+    class SimpleVoiceScreen {
+        +build()
+    }
     class RecorderNotifier {
         +startRecording()
         +stopRecording()
+    }
+    class ProcessorNotifier {
+        +process()
+        +processWithChain()
     }
     class IRecorderService {
         <<interface>>
         +start()
         +stop()
     }
-    class RecorderService {
+    class IAudioProcessorService {
+        <<interface>>
+        +process()
+        +processWithChain()
+    }
+    class EngineRecorderService {
         +start()
         +stop()
     }
-    class NativeRecorder {
-        <<Swift/Kotlin>>
+    class AudioProcessorService {
+        +process()
+        +processWithChain()
+    }
+    class RustEngine {
+        <<FFI>>
     }
 
     HomeScreen --> RecorderNotifier
+    HomeScreen --> SimpleVoiceScreen
+    SimpleVoiceScreen --> ProcessorNotifier
     RecorderNotifier --> IRecorderService
-    RecorderService ..|> IRecorderService
-    RecorderService --> NativeRecorder : MethodChannel
+    ProcessorNotifier --> IAudioProcessorService
+    EngineRecorderService ..|> IRecorderService
+    AudioProcessorService ..|> IAudioProcessorService
+    AudioProcessorService --> RustEngine : FFI
 ```

@@ -1,0 +1,8 @@
+/Users/yosuke/GitHub/tansaku/animal-voice-changer/target/release/deps/clap_lex-46b3e5dc9e4c7f06.d: /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/lib.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/ext.rs
+
+/Users/yosuke/GitHub/tansaku/animal-voice-changer/target/release/deps/libclap_lex-46b3e5dc9e4c7f06.rlib: /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/lib.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/ext.rs
+
+/Users/yosuke/GitHub/tansaku/animal-voice-changer/target/release/deps/libclap_lex-46b3e5dc9e4c7f06.rmeta: /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/lib.rs /Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/ext.rs
+
+/Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/lib.rs:
+/Users/yosuke/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/ext.rs:

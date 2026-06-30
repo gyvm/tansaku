@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vozoo/application/providers.dart';
 import 'package:vozoo/domain/entities/recorded_audio.dart';
+import 'package:vozoo/domain/entities/effect_chain.dart';
+import 'package:vozoo/domain/entities/effect_graph.dart';
 import 'package:vozoo/domain/entities/voice_preset.dart';
 import 'package:vozoo/domain/interfaces/i_audio_processor_service.dart';
 
@@ -19,6 +21,16 @@ class MockAudioProcessorService implements IAudioProcessorService {
           path: '${input.path}_processed.wav',
           duration: input.duration,
         );
+  }
+
+  @override
+  Future<RecordedAudio> processWithChain(RecordedAudio input, EffectChain chain) {
+    return process(input, VoicePreset.gorilla);
+  }
+
+  @override
+  Future<RecordedAudio> processWithGraph(RecordedAudio input, EffectGraph graph) {
+    return process(input, VoicePreset.gorilla);
   }
 
   @override

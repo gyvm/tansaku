@@ -1,6 +1,12 @@
-# Vozoo - Voice Changer App
+# Vozoo - Voice Playground
 
-Vozoo is a Flutter-based voice changer application that allows users to record their voice and apply various effects like Gorilla, Cat, Robot, Chorus, and Reverb. It uses a custom C++ DSP engine via FFI for processing.
+Vozoo is a Flutter-based voice playground for quick, playful voice changes. The main product flow is:
+
+1. Record your voice
+2. Pick a character or adjust four simple sliders
+3. Listen, save, or share
+
+The app uses a Rust DSP engine via FFI for local, on-device processing.
 
 ## Getting Started
 
@@ -44,16 +50,21 @@ Vozoo is a Flutter-based voice changer application that allows users to record t
 ### Project Structure
 
 - `lib/`: Flutter Dart code.
-- `packages/vozoo_dsp/`: C++ DSP plugin.
+- `lib/presentation/home_screen.dart`: recording entry point.
+- `lib/presentation/simple_voice_screen.dart`: main transform screen with one-tap characters and custom sliders.
+- `lib/presentation/result_screen.dart`: playback, save, and share.
 - `android/`: Android native project.
 - `ios/`: iOS native project.
+- `packages/vozoo_engine/`: Rust audio engine and FFI bridge.
 
 ## Features
 
 - **Record**: Capture audio using native APIs (AVAudioRecorder / AudioRecord).
-- **Process**: Apply DSP effects using C++ core.
+- **Transform**: Apply kid-friendly character presets and custom voice shaping.
+- **Expand**: Built-in presets now include Gorilla, Cat, Robot, Chorus, Reverb, Monster, Helium, Radio, and Huge Hall.
 - **Play**: Listen to the processed audio.
 - **Share**: Share the result via system share sheet.
+- **Offline**: Recording and processing stay on-device; only explicit sharing leaves the app.
 
 ## License
 

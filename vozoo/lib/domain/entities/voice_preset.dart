@@ -4,4 +4,8 @@ enum VoicePreset {
   robot,
   chorus,
   reverb,
+  monster,
+  helium,
+  radio,
+  hugeHall,
 }
