@@ -34,16 +34,9 @@ class AudioProcessorService implements IAudioProcessorService {
 
     _progressController.add(1.0);
 
-    Duration newDuration = input.duration;
-    if (preset == VoicePreset.gorilla) {
-      newDuration = Duration(milliseconds: (input.duration.inMilliseconds / 0.75).round());
-    } else if (preset == VoicePreset.cat) {
-      newDuration = Duration(milliseconds: (input.duration.inMilliseconds / 1.4).round());
-    }
-
     return RecordedAudio(
       path: outputPath,
-      duration: newDuration,
+      duration: input.duration,
     );
   }
 

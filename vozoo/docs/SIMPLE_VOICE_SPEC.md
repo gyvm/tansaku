@@ -31,8 +31,8 @@
 ```
 
 既存 `HomeScreen`（録音）と `ResultScreen`（再生/共有）はそのまま活用。
-**新規追加**するのは中央の「こえをへんしんしよう」画面（= 既存 `EffectSelectScreen` を子ども向けに置き換え/前面化）。
-従来の `ChainEditorScreen` / `GraphEditorScreen`（上級者向け）は残すが、トップ導線からは「もっと」奥に隠す。
+中央の「こえをへんしんしよう」画面は `SimpleVoiceScreen` を本流として使う。
+従来の `ChainEditorScreen` / `GraphEditorScreen` は今回の製品導線から外し、コードベースからも削除する。
 
 ## 4. 画面仕様: こえをへんしんしよう
 

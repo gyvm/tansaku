@@ -34,7 +34,10 @@ class SimpleCharacter {
   EffectChain toChain() => EffectChain(name: id, nodes: nodes);
 }
 
-/// The six characters from SIMPLE_VOICE_SPEC.md §4.1.
+/// Kids-friendly one-tap characters built only from effect nodes that exist
+/// in the Rust engine. The list intentionally mixes "safe defaults" with a
+/// few bolder presets so the main flow still feels playful without exposing
+/// the old advanced editors.
 const List<SimpleCharacter> kSimpleCharacters = [
   SimpleCharacter(
     id: 'gorilla',
@@ -103,6 +106,50 @@ const List<SimpleCharacter> kSimpleCharacters = [
         params: {'mod_freq': 80.0, 'quantize_steps': 6.0, 'mix': 0.6},
       ),
       EffectNode(type: 'convolution_reverb', params: {'dry_wet': 0.3}),
+    ],
+  ),
+  SimpleCharacter(
+    id: 'monster',
+    label: 'モンスター',
+    emoji: '👹',
+    color: Color(0xFFE57373), // red
+    nodes: [
+      EffectNode(type: 'pitch_shift', params: {'semitones': -8.0}),
+      EffectNode(type: 'formant_shift', params: {'shift_factor': 0.72}),
+      EffectNode(type: 'compressor', params: {'threshold_db': -26.0, 'ratio': 6.0}),
+    ],
+  ),
+  SimpleCharacter(
+    id: 'helium',
+    label: 'ヘリウム',
+    emoji: '🎈',
+    color: Color(0xFFF06292), // pink
+    nodes: [
+      EffectNode(type: 'pitch_shift', params: {'semitones': 11.0}),
+      EffectNode(type: 'formant_shift', params: {'shift_factor': 1.38}),
+      EffectNode(type: 'chorus', params: {'mix': 0.18}),
+    ],
+  ),
+  SimpleCharacter(
+    id: 'radio',
+    label: 'ラジオ',
+    emoji: '📻',
+    color: Color(0xFF78909C), // blue grey
+    nodes: [
+      EffectNode(type: 'highpass', params: {'freq': 420.0, 'q': 0.707}),
+      EffectNode(type: 'lowpass', params: {'freq': 3200.0, 'q': 0.707}),
+      EffectNode(type: 'ring_mod', params: {'mod_freq': 32.0, 'quantize_steps': 18.0, 'mix': 0.28}),
+      EffectNode(type: 'compressor', params: {'threshold_db': -24.0, 'ratio': 5.0}),
+    ],
+  ),
+  SimpleCharacter(
+    id: 'huge_hall',
+    label: 'おおホール',
+    emoji: '🏛️',
+    color: Color(0xFF7986CB), // indigo
+    nodes: [
+      EffectNode(type: 'convolution_reverb', params: {'room_size': 1.45, 'damping': 0.35, 'dry_wet': 0.58}),
+      EffectNode(type: 'deesser', params: {'frequency': 5200.0, 'threshold_db': -18.0, 'ratio': 4.0}),
     ],
   ),
 ];

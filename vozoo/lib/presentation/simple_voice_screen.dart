@@ -4,7 +4,6 @@ import '../domain/entities/recorded_audio.dart';
 import '../domain/entities/simple_voice.dart';
 import '../application/providers.dart';
 import 'result_screen.dart';
-import 'effect_select_screen.dart';
 import 'widgets.dart';
 
 /// Kids-friendly voice transform screen (SIMPLE_VOICE_SPEC.md).
@@ -81,20 +80,6 @@ class _SimpleVoiceScreenState extends ConsumerState<SimpleVoiceScreen>
       appBar: AppBar(
         title: const Text('こえを へんしんしよう'),
         centerTitle: true,
-        actions: [
-          // Advanced (existing) editors, kept out of the way for kids.
-          IconButton(
-            icon: const Icon(Icons.tune_rounded),
-            tooltip: 'くわしく せってい',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => EffectSelectScreen(audio: widget.audio),
-                ),
-              );
-            },
-          ),
-        ],
         bottom: TabBar(
           controller: _tab,
           labelStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -149,7 +134,7 @@ class _SimpleVoiceScreenState extends ConsumerState<SimpleVoiceScreen>
         const Padding(
           padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
           child: Text(
-            'すきな キャラを えらんでね',
+            'すきな こえを えらんでね',
             style: TextStyle(fontSize: 16, color: Colors.black54),
           ),
         ),
