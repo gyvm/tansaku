@@ -1,0 +1,15 @@
+# Local secrets / config
+.env
+.env.*
+!.env.example
+config.yaml
+
+# Local-only token (FileTokenStore). The repo_encrypted store instead commits
+# state/token.enc (Fernet-encrypted) and state/run_state.json (non-secret IDs),
+# so those are intentionally NOT ignored.
+state/token.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc

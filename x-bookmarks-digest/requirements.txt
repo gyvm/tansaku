@@ -1,0 +1,7 @@
+# Core: HTTP is stdlib urllib, so only YAML config parsing is required.
+PyYAML>=6,<7
+
+# Optional: only needed when TOKEN_STORE=repo_encrypted (encrypts the rotating
+# refresh token before it is committed to the repo). Local (file) mode does not
+# need this.
+cryptography>=3.4.6

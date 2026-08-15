@@ -1,0 +1,32 @@
+# Copy to config.yaml and edit. config.yaml is gitignored.
+
+x:
+  # Env var name that holds the numeric user id. Optional: if empty at runtime it
+  # is resolved via /2/users/me during `auth` and cached in the token bundle.
+  user_id_env: X_USER_ID
+  max_results: 100      # page size for the bookmarks endpoint (max 100)
+  max_pages: 5          # safety cap on pagination per run
+
+fetch:
+  dedup: true           # skip bookmarks already seen in a previous run
+  seen_cache_size: 2000 # how many recent bookmark ids to remember
+
+group:
+  # Grouping key priority. For each bookmark the first strategy that yields a
+  # value wins. Supported: hashtag, domain, author.
+  strategy: [hashtag, domain, author]
+
+digest:
+  title: "X Bookmarks Digest"
+
+notify:
+  channels: [stdout]    # any of: stdout, slack, discord
+  skip_when_empty: true # don't send anything when there are no new bookmarks
+
+# file | repo_encrypted
+token_store: file
+
+repo_encrypted:         # only used when token_store: repo_encrypted
+  token_path: state/token.enc
+  state_path: state/run_state.json
+  git_branch: claude/x-bookmarks-automation-l66uln
