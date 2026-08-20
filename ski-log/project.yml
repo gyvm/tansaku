@@ -1,0 +1,30 @@
+name: SkiLog
+
+options:
+  bundleIdPrefix: com.tansaku
+  deploymentTarget:
+    iOS: "17.0"
+  developmentLanguage: ja
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    SUPPORTS_MACCATALYST: false
+    SWIFT_EMIT_LOC_STRINGS: true
+
+targets:
+  SkiLog:
+    type: application
+    platform: iOS
+    sources:
+      - path: SkiLog
+        excludes:
+          - Resources/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tansaku.skilog
+        INFOPLIST_FILE: SkiLog/Resources/Info.plist
+        PRODUCT_NAME: Ski Log
