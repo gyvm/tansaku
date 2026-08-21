@@ -1,0 +1,7 @@
+# Xcodeのビルド中間生成物
+.build/
+DerivedData/
+
+# Xcodeの個人設定
+xcuserdata/
+*.xcuserstate
