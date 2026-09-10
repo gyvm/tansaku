@@ -23,7 +23,23 @@ export const AudioPlayerSection: React.FC<AudioPlayerSectionProps> = ({
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Clean up Object URL on unmount or re-render
+  // Invalidate rendered WAV URL whenever inputs (audio source, voice settings, stamps) change
+  useEffect(() => {
+    setRenderedWavUrl((prevUrl) => {
+      if (prevUrl) {
+        URL.revokeObjectURL(prevUrl);
+      }
+      return null;
+    });
+    setRenderedDuration(0);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+    }
+    setIsPlaying(false);
+  }, [audioSource, settings, stamps]);
+
+  // Clean up Object URL on unmount
   useEffect(() => {
     return () => {
       if (renderedWavUrl) {

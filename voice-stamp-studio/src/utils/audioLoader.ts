@@ -38,9 +38,20 @@ export class VoiceRecorder {
     analyser.fftSize = 256;
     source.connect(analyser);
 
-    this.mediaRecorder = new MediaRecorder(this.stream);
+    let options: MediaRecorderOptions | undefined = undefined;
+    if (typeof MediaRecorder !== 'undefined' && typeof MediaRecorder.isTypeSupported === 'function') {
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        options = { mimeType: 'audio/webm;codecs=opus' };
+      } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+        options = { mimeType: 'audio/webm' };
+      } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        options = { mimeType: 'audio/mp4' };
+      }
+    }
+
+    this.mediaRecorder = options ? new MediaRecorder(this.stream, options) : new MediaRecorder(this.stream);
     this.mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
+      if (event.data && event.data.size > 0) {
         this.audioChunks.push(event.data);
       }
     };
@@ -59,8 +70,11 @@ export class VoiceRecorder {
         return;
       }
 
-      this.mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+      const recorder = this.mediaRecorder;
+
+      recorder.onstop = async () => {
+        const mimeType = recorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(this.audioChunks, { type: mimeType });
         if (this.stream) {
           this.stream.getTracks().forEach((track) => track.stop());
           this.stream = null;
@@ -76,7 +90,11 @@ export class VoiceRecorder {
         }
       };
 
-      this.mediaRecorder.stop();
+      if (recorder.state !== 'inactive') {
+        recorder.stop();
+      } else {
+        recorder.onstop(new Event('stop'));
+      }
     });
   }
 }

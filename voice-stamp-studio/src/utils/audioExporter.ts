@@ -31,7 +31,8 @@ export async function renderComposition(
   // Calculate total duration including any placed stamps
   let maxStampEndTime = 0;
   stamps.forEach((s) => {
-    maxStampEndTime = Math.max(maxStampEndTime, s.time + 2.5); // stamps default max 2.5s
+    const time = Number.isFinite(s.time) ? Math.max(0, s.time) : 0;
+    maxStampEndTime = Math.max(maxStampEndTime, time + 2.5); // stamps default max 2.5s
   });
 
   const totalDuration = Math.max(effectiveVoiceDuration, maxStampEndTime, 1.0);
@@ -46,7 +47,7 @@ export async function renderComposition(
 
   const presetFx = applyVoicePresetEffects(offlineCtx, settings.preset);
   const voiceGain = offlineCtx.createGain();
-  voiceGain.gain.value = settings.mainVolume;
+  voiceGain.gain.value = Math.max(0, settings.mainVolume);
 
   voiceSource.connect(presetFx.inputNode);
   presetFx.outputNode.connect(voiceGain);
@@ -61,7 +62,7 @@ export async function renderComposition(
     ambientSource.buffer = ambientBuffer;
 
     const ambientGain = offlineCtx.createGain();
-    ambientGain.gain.value = settings.ambientVolume;
+    ambientGain.gain.value = Math.max(0, settings.ambientVolume);
 
     ambientSource.connect(ambientGain);
     ambientGain.connect(offlineCtx.destination);
@@ -70,17 +71,18 @@ export async function renderComposition(
 
   // 5. Connect Placed Sound Stamps
   for (const stamp of stamps) {
+    const safeTime = Number.isFinite(stamp.time) ? Math.max(0, stamp.time) : 0;
     const stampBuffer = await generateStampBuffer(stamp.stampId, sampleRate);
     const stampSource = offlineCtx.createBufferSource();
     stampSource.buffer = stampBuffer;
 
     const stampGain = offlineCtx.createGain();
-    stampGain.gain.value = stamp.volume;
+    stampGain.gain.value = Math.max(0, stamp.volume);
 
     stampSource.connect(stampGain);
     stampGain.connect(offlineCtx.destination);
 
-    stampSource.start(stamp.time);
+    stampSource.start(safeTime);
   }
 
   // Render composite audio

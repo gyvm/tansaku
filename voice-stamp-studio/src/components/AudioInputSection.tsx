@@ -17,6 +17,19 @@ export const AudioInputSection: React.FC<AudioInputSectionProps> = ({ audioSourc
 
   const startRecording = async () => {
     try {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      if (recorderRef.current) {
+        try {
+          await recorderRef.current.stopRecording();
+        } catch {
+          // ignore previous recorder stop error
+        }
+        recorderRef.current = null;
+      }
+
       const recorder = new VoiceRecorder();
       recorderRef.current = recorder;
       await recorder.startRecording();
@@ -29,16 +42,21 @@ export const AudioInputSection: React.FC<AudioInputSectionProps> = ({ audioSourc
     } catch (err) {
       console.error('Recording failed:', err);
       alert('マイクアクセスが拒否されたか、録音に失敗しました。');
+      setIsRecording(false);
     }
   };
 
   const stopRecording = async () => {
     if (!recorderRef.current) return;
-    if (timerRef.current) clearInterval(timerRef.current);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
 
     try {
       const buffer = await recorderRef.current.stopRecording();
       setIsRecording(false);
+      recorderRef.current = null;
       onAudioLoaded({
         buffer,
         duration: buffer.duration,
@@ -48,6 +66,7 @@ export const AudioInputSection: React.FC<AudioInputSectionProps> = ({ audioSourc
       });
     } catch (err) {
       console.error('Stop recording failed:', err);
+      setIsRecording(false);
     }
   };
 
