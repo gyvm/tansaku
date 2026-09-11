@@ -38,6 +38,10 @@ export function App() {
     setStamps((prev) => prev.filter((s) => s.id !== id));
   };
 
+  const handleClearAllStamps = () => {
+    setStamps([]);
+  };
+
   const handleUpdateStampTime = (id: string, time: number) => {
     setStamps((prev) =>
       prev.map((s) => (s.id === id ? { ...s, time } : s))
@@ -109,6 +113,7 @@ export function App() {
             currentTime={currentTime}
             onAddStamp={handleAddStamp}
             onRemoveStamp={handleRemoveStamp}
+            onClearAllStamps={handleClearAllStamps}
             onUpdateStampTime={handleUpdateStampTime}
             onUpdateStampVolume={handleUpdateStampVolume}
           />
