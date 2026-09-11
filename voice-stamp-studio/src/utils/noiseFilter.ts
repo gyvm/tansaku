@@ -55,7 +55,7 @@ export async function applyNoiseReductionToBuffer(
   const thresholdLinear = Math.pow(10, options.gateThresholdDb / 20);
   const releaseSamples = Math.floor(sampleRate * 0.05); // 50ms smooth fade
 
-  const finalBuffer = offlineCtx.createBuffer(numberOfChannels, length, sampleRate);
+  const finalBuffer = new AudioBuffer({ length, numberOfChannels, sampleRate });
 
   for (let ch = 0; ch < numberOfChannels; ch++) {
     const inputData = filteredBuffer.getChannelData(ch);
