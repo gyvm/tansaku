@@ -95,6 +95,15 @@ STT の確定待ちが長い場合は、画面の「Hybrid VAD」を ON にし�
 
 Jev の choice の選択肢は最大 255 個です。市役所サイト全体のように、それを超える規模になった場合は「カテゴリ判定 → カテゴリ内のトピック判定」の 2 段階にするか、トピック判定の後に全文検索やベクトル検索で文書を絞り込む構成に拡張してください。
 
+## ドキュメント
+
+設計や判断の経緯は [`docs/`](./docs/README.md) にまとめています。
+
+- [architecture-review.md](./docs/architecture-review.md): 実装前のアーキテクチャレビューと質疑
+- [design.md](./docs/design.md): 詳細設計（シーケンス、メッセージ仕様、状態管理）
+- [decisions.md](./docs/decisions.md): 設計判断の記録（自走で決めた事項を含む）
+- [session-log.md](./docs/session-log.md): 開発セッションのログと、未検証の事項
+
 ## ディレクトリ
 
 ```
