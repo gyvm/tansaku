@@ -1,0 +1,5 @@
+# cp .dev.vars.example .dev.vars して値を入れる。空欄のままならモックで動く
+# Google AI Studio の API キー（STT / LLM / TTS に使用）
+GEMINI_API_KEY=
+# TypeSafe AI の API キー（Jev による意図判定に使用）
+JEV_API_KEY=
