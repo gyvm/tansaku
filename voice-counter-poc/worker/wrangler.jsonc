@@ -1,0 +1,35 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "voice-counter-poc",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "observability": { "enabled": true },
+
+  // web/dist を静的配信する（npm run build でビルドしてから deploy）
+  "assets": {
+    "directory": "../web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/ws"]
+  },
+
+  "durable_objects": {
+    "bindings": [{ "name": "CALL_SESSION", "class_name": "CallSession" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["CallSession"] }],
+
+  // knowledge/*.md を文字列として import する
+  "rules": [{ "type": "Text", "globs": ["**/*.md"], "fallthrough": true }],
+
+  "vars": {
+    "STT_MODEL": "gemini-3.5-transcribe-live",
+    "LLM_MODEL": "gemini-3.5-flash-lite",
+    "LLM_THINKING_LEVEL": "minimal",
+    "TTS_MODEL": "gemini-3.8-flash-lite-tts",
+    "TTS_VOICE": "Kore",
+    "TTS_STYLE": "calm, polite and clear Japanese municipal call-center operator, natural conversational pace",
+    "JEV_MODEL": "jev-latest",
+    "ROUTE_CONFIDENCE_THRESHOLD": "0.6"
+  }
+  // secrets: GEMINI_API_KEY, JEV_API_KEY（ローカルは .dev.vars、本番は wrangler secret put）
+}

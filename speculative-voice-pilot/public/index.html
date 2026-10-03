@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>多重投機的ストリーミング 音声エージェント (Speculative Voice Pilot)</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-bright: #f0f6fc;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --warning: #d29922;
+      --danger: #f85149;
+      --stream-bg: #21262d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-bright);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: #238636;
+      color: #fff;
+    }
+
+    .status-pill {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--stream-bg);
+      border: 1px solid var(--border);
+    }
+    .status-pill.online { border-color: var(--success); color: var(--success); }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-bright);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* メイン操作エリア */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    button {
+      background: #21262d;
+      color: var(--text-bright);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+
+    button:hover { background: #30363d; }
+    button.primary { background: #238636; border-color: #2ea043; color: #fff; }
+    button.primary:hover { background: #2ea043; }
+    button.recording { background: var(--danger); border-color: var(--danger); color: #fff; animation: pulse 1.5s infinite; }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    /* シミュレーションボタン */
+    .sim-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .sim-btn {
+      font-size: 12px;
+      padding: 6px 12px;
+      background: var(--stream-bg);
+      border: 1px solid var(--border);
+      color: var(--accent);
+    }
+    .sim-btn:hover { background: #30363d; border-color: var(--accent); }
+
+    /* トランスクリプト表示 */
+    .transcript-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      min-height: 50px;
+      font-size: 15px;
+      color: var(--text-bright);
+    }
+    .transcript-interim { color: #8b949e; }
+
+    /* 投機ストリームのモニター */
+    .stream-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .stream-row {
+      background: var(--stream-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .stream-row.winner {
+      border-color: var(--success);
+      background: rgba(63, 185, 80, 0.1);
+      box-shadow: 0 0 12px rgba(63, 185, 80, 0.2);
+    }
+
+    .stream-row.aborted {
+      opacity: 0.4;
+      border-style: dashed;
+    }
+
+    .stream-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .stream-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stream-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #30363d;
+      color: #8b949e;
+    }
+    .stream-row.winner .stream-badge {
+      background: var(--success);
+      color: #000;
+      font-weight: bold;
+    }
+
+    .stream-speech {
+      font-size: 13px;
+      color: var(--text-bright);
+    }
+
+    .stream-stats {
+      font-size: 11px;
+      color: #8b949e;
+      display: flex;
+      gap: 16px;
+    }
+
+    /* レイテンシメーター */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .metric-box {
+      background: var(--stream-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--success);
+      margin: 4px 0;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: #8b949e;
+    }
+
+    /* アシスタント応答ログ */
+    .chat-history {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    .chat-msg {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      max-width: 85%;
+    }
+    .chat-msg.user {
+      align-self: flex-end;
+      background: #1f6feb;
+      color: #fff;
+    }
+    .chat-msg.ai {
+      align-self: flex-start;
+      background: var(--stream-bg);
+      border: 1px solid var(--border);
+      color: var(--text-bright);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div>
+      <h1>
+        ⚡ 多重投機的ストリーミング 音声エージェント
+        <span class="badge">札幌市役所 PoC</span>
+      </h1>
+      <p style="font-size: 12px; color: #8b949e; margin-top: 4px;">
+        相手が話している最中に裏で音声生成を開始し、言い終わった瞬間に「0秒」で音声再生へ直結するプロトタイプ
+      </p>
+    </div>
+    <div id="wsStatus" class="status-pill">接続中...</div>
+  </header>
+
+  <!-- レイテンシ実測メーター -->
+  <div class="card">
+    <div class="card-title">
+      <span>⏱️ 実効レイテンシ・パフォーマンス測定</span>
+      <span style="font-size: 11px; font-weight: normal; color: #8b949e;">発話終了 → 音声再生開始までの時間</span>
+    </div>
+    <div class="metric-grid">
+      <div class="metric-box">
+        <div class="metric-label">実効レイテンシ (TTFA)</div>
+        <div id="metricLatency" class="metric-value">-- ms</div>
+        <div style="font-size: 11px; color: var(--success);">投機キャッシュ直結</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">発話終了時の先行バッファ量</div>
+        <div id="metricBuffer" class="metric-value">-- KB</div>
+        <div style="font-size: 11px; color: #8b949e;">手元に届いていた音声</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">採用されたストリーム</div>
+        <div id="metricStream" class="metric-value">--</div>
+        <div style="font-size: 11px; color: #8b949e;">Winner ID</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- マイク & シミュレーション入力 -->
+  <div class="card">
+    <div class="card-title">
+      <span>🎙️ 音声入力 & シミュレーション</span>
+    </div>
+    <div class="controls">
+      <button id="micBtn" class="primary">
+        <span>🎤</span> <span id="micBtnText">マイクで通話開始</span>
+      </button>
+      <button id="audioUnlockBtn">
+        <span>🔊</span> 音声出力を有効化
+      </button>
+      <button id="resetBtn">
+        <span>🔄</span> 会話リセット
+      </button>
+      <div style="display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: 13px; color: #8b949e;">
+        <span>TTSエンジン:</span>
+        <label style="cursor: pointer; display: flex; align-items: center; gap: 4px; color: var(--text-bright);">
+          <input type="radio" name="ttsEngine" value="gemini" checked onchange="switchTTS(this.value)"> Gemini TTS (Kore)
+        </label>
+        <label style="cursor: pointer; display: flex; align-items: center; gap: 4px; color: var(--text-bright);">
+          <input type="radio" name="ttsEngine" value="elevenlabs" onchange="switchTTS(this.value)"> ElevenLabs Turbo (Sarah)
+        </label>
+      </div>
+    </div>
+
+    <!-- ワンクリック進行シミュレーション -->
+    <div style="margin-top: 16px;">
+      <span style="font-size: 12px; color: #8b949e;">ワンクリック発話シミュレーション（30の市役所資料から即時回答）:</span>
+      <div class="sim-group">
+        <button class="sim-btn" onclick="simulateSpeechSequence(['住民票を', '他の区から引っ越してきたので', '住民票を取りたいんですけど。'])">
+          ①「住民票（転入）」
+        </button>
+        <button class="sim-btn" onclick="simulateSpeechSequence(['暗証番号を', '暗証番号を忘れてしまって', 'どうしたらいいですか？'])">
+          ②「暗証番号を忘れた」
+        </button>
+        <button class="sim-btn" onclick="simulateSpeechSequence(['結婚することになったので', '婚姻届の手続きについて', '教えてほしいです。'])">
+          ③「婚姻届の手続き」
+        </button>
+        <button class="sim-btn" onclick="simulateSpeechSequence(['会社を退職したので', '国民健康保険に加入したいです。'])">
+          ④「国保加入（退職）」
+        </button>
+        <button class="sim-btn" onclick="simulateSpeechSequence(['子どもが生まれたので', '児童手当の申請をしたいです。'])">
+          ⑤「児童手当の申請」
+        </button>
+        <button class="sim-btn" onclick="simulateSpeechSequence(['ベッドを捨てたいので', '大型ごみの収集予約をお願いしたいです。'])">
+          ⑥「大型ごみ収集」
+        </button>
+      </div>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <div style="font-size: 12px; color: #8b949e; margin-bottom: 6px;">リアルタイム発話テキスト（STT / シミュレーション）:</div>
+      <div id="transcriptBox" class="transcript-box">
+        <span id="finalTranscript"></span>
+        <span id="interimTranscript" class="transcript-interim">（ボタンを押すか、マイクで話してください）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 投機ストリーム可視化モニター -->
+  <div class="card">
+    <div class="card-title">
+      <span>⚡ 裏側で並行稼働中の投機ストリーム (Speculative Pool)</span>
+      <span id="activeStreamCount" style="font-size: 12px; color: var(--accent);">0 本稼働中</span>
+    </div>
+    <div id="streamGrid" class="stream-grid">
+      <div style="color: #8b949e; font-size: 13px; text-align: center; padding: 20px;">
+        発話が始まると、裏側でリアルタイムに生成されるストリーム群がここに表示されます
+      </div>
+    </div>
+  </div>
+
+  <!-- 会話履歴 -->
+  <div class="card">
+    <div class="card-title">
+      <span>💬 会話履歴</span>
+    </div>
+    <div id="chatHistory" class="chat-history"></div>
+  </div>
+</div>
+
+<script>
+  // ---- Web Audio API ストリーミング再生エンジン (高品質リサンプリング & ギャップレス再生) ----
+  let audioCtx = null;
+  let nextPlayTime = 0;
+  let pcmCarryover = null;
+  const activeSources = [];
+
+  function initAudioContext() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      nextPlayTime = audioCtx.currentTime;
+    }
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+  }
+
+  function stopAllAudio() {
+    for (const src of activeSources) {
+      try { src.stop(); } catch (e) {}
+    }
+    activeSources.length = 0;
+    if (audioCtx) {
+      nextPlayTime = audioCtx.currentTime;
+    }
+    pcmCarryover = null;
+  }
+
+  document.getElementById("audioUnlockBtn").addEventListener("click", () => {
+    initAudioContext();
+    alert(`音声出力を有効化しました！ (デバイスサンプルレート: ${audioCtx.sampleRate} Hz)`);
+  });
+
+  function playPcmChunk(rawArrayBuffer) {
+    initAudioContext();
+    if (!audioCtx) return;
+
+    let bytes = new Uint8Array(rawArrayBuffer);
+    if (bytes.length === 0) return;
+
+    // 前回の奇数バイト端数があれば結合
+    if (pcmCarryover && pcmCarryover.length > 0) {
+      const combined = new Uint8Array(pcmCarryover.length + bytes.length);
+      combined.set(pcmCarryover, 0);
+      combined.set(bytes, pcmCarryover.length);
+      bytes = combined;
+      pcmCarryover = null;
+    }
+
+    // 16bit = 2バイト単位でなければ末尾1バイトを次回に持ち越す
+    if (bytes.length % 2 !== 0) {
+      pcmCarryover = bytes.slice(bytes.length - 1);
+      bytes = bytes.slice(0, bytes.length - 1);
+    }
+
+    if (bytes.length < 2) return;
+
+    const int16Array = new Int16Array(bytes.buffer, bytes.byteOffset, bytes.length / 2);
+    const srcSampleRate = 24000;
+    const dstSampleRate = audioCtx.sampleRate; // 通常 48000 または 44100
+    const ratio = dstSampleRate / srcSampleRate;
+
+    // 24000Hz から ブラウザの実際の sampleRate へ線形補間（Linear Interpolation）
+    // これにより、ハードウェアが48000Hzでも早口にならず自然な速度で再生される！
+    const targetLength = Math.round(int16Array.length * ratio);
+    const resampled = new Float32Array(targetLength);
+
+    for (let i = 0; i < targetLength; i++) {
+      const srcIdx = i / ratio;
+      const i0 = Math.floor(srcIdx);
+      const i1 = Math.min(i0 + 1, int16Array.length - 1);
+      const frac = srcIdx - i0;
+      const s0 = int16Array[i0] / 32768.0;
+      const s1 = int16Array[i1] / 32768.0;
+      resampled[i] = s0 + frac * (s1 - s0);
+    }
+
+    const audioBuffer = audioCtx.createBuffer(1, resampled.length, dstSampleRate);
+    audioBuffer.copyToChannel(resampled, 0);
+
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+    // バッファアンダーランを防ぐため、遅れている場合は少しだけ先（15ms）に再同期
+    if (nextPlayTime < now) {
+      nextPlayTime = now + 0.015;
+    }
+
+    source.start(nextPlayTime);
+    nextPlayTime += audioBuffer.duration;
+
+    activeSources.push(source);
+    source.onended = () => {
+      const idx = activeSources.indexOf(source);
+      if (idx !== -1) activeSources.splice(idx, 1);
+    };
+  }
+
+  // ---- WebSocket 接続 ----
+  const wsStatus = document.getElementById("wsStatus");
+  let ws = null;
+
+  function connectWs() {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const url = `${protocol}//${window.location.host}/ws`;
+    ws = new WebSocket(url);
+    ws.binaryType = "arraybuffer";
+
+    ws.onopen = () => {
+      wsStatus.textContent = "● 接続完了 (オンライン)";
+      wsStatus.className = "status-pill online";
+    };
+
+    ws.onclose = () => {
+      wsStatus.textContent = "× 切断 (再試行中...)";
+      wsStatus.className = "status-pill";
+      setTimeout(connectWs, 2000);
+    };
+
+    ws.onmessage = (event) => {
+      if (typeof event.data === "string") {
+        const msg = JSON.parse(event.data);
+        handleServerMessage(msg);
+      } else if (event.data instanceof ArrayBuffer) {
+        // 音声 PCM チャンクが直接届く！
+        playPcmChunk(event.data);
+      }
+    };
+  }
+
+  connectWs();
+
+  function sendWs(data) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(data));
+    }
+  }
+
+  // ---- サーバーメッセージのハンドリング ----
+  function handleServerMessage(msg) {
+    if (msg.type === "streams_update") {
+      renderStreams(msg.streams);
+    } else if (msg.type === "winner_selected") {
+      stopAllAudio(); // 前の音声が鳴っていれば即座に停止して新しい発話へ切り替え
+      document.getElementById("metricLatency").textContent = `${msg.latencyMs} ms`;
+      document.getElementById("metricBuffer").textContent = `${(msg.initialBytes / 1024).toFixed(1)} KB`;
+      document.getElementById("metricStream").textContent = `#${msg.streamId}`;
+
+      appendChatMessage("ai", msg.predictedResponse, msg.sourceDoc);
+    } else if (msg.type === "winner_updated") {
+      // 2段階ストリーミング：核心回答が結合されたら最後のAIメッセージを更新
+      const history = document.getElementById("chatHistory");
+      const lastMsg = history.querySelector(".chat-msg.ai:last-child");
+      if (lastMsg) {
+        const body = lastMsg.querySelector("div:nth-child(2)");
+        if (body) body.textContent = msg.fullResponse;
+        const badge = lastMsg.querySelector("div:nth-child(3)");
+        if (badge && msg.sourceDoc) {
+          badge.textContent = `📄 参照資料: ${msg.sourceDoc}`;
+        }
+      }
+    }
+  }
+
+  function renderStreams(streams) {
+    const grid = document.getElementById("streamGrid");
+    const countLabel = document.getElementById("activeStreamCount");
+    countLabel.textContent = `${streams.length} 本稼働中`;
+
+    if (streams.length === 0) {
+      grid.innerHTML = '<div style="color: #8b949e; font-size: 13px; text-align: center; padding: 20px;">待機中...</div>';
+      return;
+    }
+
+    grid.innerHTML = streams.map(s => {
+      const isWinner = s.isCommitted;
+      const isAborted = s.isAborted;
+      let statusClass = "";
+      let tierLabel = s.tier === "prefix" ? "相槌 (Tier-1 Prefix)" : s.tier === "payload" ? "核心回答 (Tier-2 Payload)" : "通常";
+      let badgeText = `${tierLabel} 生成中`;
+
+      if (isWinner) {
+        statusClass = "winner";
+        badgeText = `★ WINNER (${tierLabel} 採用)`;
+      } else if (isAborted) {
+        statusClass = "aborted";
+        badgeText = "破棄・キャンセル (Aborted)";
+      }
+
+      return `
+        <div class="stream-row ${statusClass}">
+          <div class="stream-header">
+            <div class="stream-title">
+              <span>Stream #${s.streamId}</span>
+              <span class="stream-badge">${badgeText}</span>
+            </div>
+            <div>トリガー: "${escapeHtml(s.triggerText)}"</div>
+            ${s.sourceDoc ? `<div style="font-size: 11px; color: #58a6ff; margin-top: 3px;">📄 参照資料: ${escapeHtml(s.sourceDoc)}</div>` : ""}
+          </div>
+          <div class="stream-speech">${escapeHtml(s.predictedResponse)}</div>
+          <div class="stream-stats">
+            <span>先行バッファ: ${(s.bufferedBytes / 1024).toFixed(1)} KB</span>
+            <span>チャンク数: ${s.chunksCount}</span>
+            <span>開始からの経過: ${Date.now() - s.startedAt} ms</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // ---- TTS切り替え ----
+  function switchTTS(engine) {
+    sendWs({ type: "set_tts", engine });
+  }
+
+  // ---- 会話履歴の追加 ----
+  function appendChatMessage(role, text, sourceDoc) {
+    const history = document.getElementById("chatHistory");
+    const msg = document.createElement("div");
+    msg.className = `chat-msg ${role}`;
+
+    if (role === "ai") {
+      const header = document.createElement("div");
+      header.style.fontWeight = "bold";
+      header.style.marginBottom = "4px";
+      header.textContent = "札幌市役所AI:";
+
+      const body = document.createElement("div");
+      body.textContent = text;
+      msg.appendChild(header);
+      msg.appendChild(body);
+
+      if (sourceDoc) {
+        const badge = document.createElement("div");
+        badge.style.marginTop = "6px";
+        badge.style.fontSize = "11px";
+        badge.style.color = "#58a6ff";
+        badge.style.display = "inline-flex";
+        badge.style.alignItems = "center";
+        badge.style.gap = "4px";
+        badge.style.background = "rgba(56, 139, 253, 0.15)";
+        badge.style.padding = "2px 8px";
+        badge.style.borderRadius = "4px";
+        badge.textContent = `📄 参照資料: ${sourceDoc}`;
+        msg.appendChild(badge);
+      }
+    } else {
+      msg.textContent = "市民: " + text;
+    }
+
+    history.appendChild(msg);
+    history.scrollTop = history.scrollHeight;
+  }
+
+  // ---- シミュレーション発話 ----
+  let simTimeout = null;
+  function simulateSpeechSequence(phrases) {
+    initAudioContext();
+    stopAllAudio(); // 前の発話音声を停止
+    clearTimeout(simTimeout);
+
+    let index = 0;
+    const finalElem = document.getElementById("finalTranscript");
+    const interimElem = document.getElementById("interimTranscript");
+    finalElem.textContent = "";
+    interimElem.textContent = "";
+
+    function step() {
+      if (index >= phrases.length) return;
+
+      const phrase = phrases[index];
+      const isLast = index === phrases.length - 1;
+
+      interimElem.textContent = phrase;
+      sendWs({ type: "transcript", text: phrase, isFinal: isLast });
+
+      if (isLast) {
+        finalElem.textContent = phrase;
+        interimElem.textContent = "";
+        appendChatMessage("user", phrase);
+      } else {
+        index++;
+        simTimeout = setTimeout(step, 450); // 450ms おきに次の単語・文節へ進む
+      }
+    }
+
+    step();
+  }
+
+  // ---- ブラウザマイク (Web Speech API) ----
+  const micBtn = document.getElementById("micBtn");
+  const micBtnText = document.getElementById("micBtnText");
+  let recognition = null;
+  let isRecording = false;
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = "ja-JP";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+      let interim = "";
+      let final = "";
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          final += event.results[i][0].transcript;
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+
+      const finalElem = document.getElementById("finalTranscript");
+      const interimElem = document.getElementById("interimTranscript");
+
+      if (final) {
+        finalElem.textContent = final;
+        interimElem.textContent = "";
+        appendChatMessage("user", final);
+        sendWs({ type: "transcript", text: final, isFinal: true });
+      } else if (interim) {
+        interimElem.textContent = interim;
+        sendWs({ type: "transcript", text: interim, isFinal: false });
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech Recognition Error:", event.error);
+    };
+
+    recognition.onend = () => {
+      if (isRecording) {
+        recognition.start();
+      }
+    };
+  }
+
+  micBtn.addEventListener("click", () => {
+    initAudioContext();
+
+    if (!SpeechRecognition) {
+      alert("お使いのブラウザは Web Speech API に対応していません。Google Chrome またはシミュレーションボタンをご利用ください。");
+      return;
+    }
+
+    if (!isRecording) {
+      recognition.start();
+      isRecording = true;
+      micBtn.className = "primary recording";
+      micBtnText.textContent = "通話中 (クリックで停止)";
+    } else {
+      recognition.stop();
+      isRecording = false;
+      micBtn.className = "primary";
+      micBtnText.textContent = "マイクで通話開始";
+    }
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    sendWs({ type: "reset" });
+    stopAllAudio();
+    document.getElementById("finalTranscript").textContent = "";
+    document.getElementById("interimTranscript").textContent = "（リセットしました）";
+    document.getElementById("streamGrid").innerHTML = "";
+    document.getElementById("chatHistory").innerHTML = "";
+  });
+
+  function escapeHtml(str) {
+    return (str || "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m]);
+  }
+</script>
+</body>
+</html>

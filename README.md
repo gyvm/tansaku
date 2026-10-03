@@ -12,3 +12,6 @@ Experiments and applications.
 
 - **[Palette App](./palette-app)**
   A standalone palette application.
+
+- **[Voice Counter PoC](./voice-counter-poc)**
+  A real-time voice Q&A prototype for municipal help desks (Gemini Live STT → Jev routing → Gemini LLM/TTS on Cloudflare Workers + Durable Objects).
