@@ -1,0 +1,26 @@
+{
+  "name": "speculative-voice-pilot",
+  "version": "1.0.0",
+  "description": "Multi-speculative streaming voice agent for low-latency municipal phone consultation",
+  "main": "server.ts",
+  "scripts": {
+    "dev": "bun run server.ts",
+    "start": "bun run server.ts",
+    "node:dev": "tsx server.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
